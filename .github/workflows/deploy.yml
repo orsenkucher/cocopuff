@@ -32,6 +32,8 @@ jobs:
       run: yarn --frozen-lockfile
     - run: pwd
     - run: ls -a
+    - run: cd cocopuff
+    - run: ls -a
     - run: yarn build
     - run: yarn test
     - run: ls build
