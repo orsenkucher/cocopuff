@@ -34,6 +34,14 @@ jobs:
       run: yarn --frozen-lockfile
     - run: pwd
     - run: ls -a
-    - run: yarn build
     - run: yarn test
+    - run: yarn build
     - run: ls build
+    - name: executing remote ssh commands using ssh key
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.KEY }}
+        port: ${{ secrets.PORT }}
+        script: whoami
