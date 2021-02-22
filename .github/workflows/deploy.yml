@@ -5,9 +5,10 @@ name: Cocopuff deploy
 
 on:
   push:
-    branches: [ master ]
+    branches: [ $default-branch ]
     
-  workflow_dispatch:
+  # for manual triggering
+  workflow_dispatch: 
 
 jobs:
   build:
@@ -21,12 +22,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - run: cd cocopuff
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node-version }}
-    - run: cd cocopuff
-    - run: yarn install
-    - run: yarn build --if-present
+    - name: Install dependencies
+      run: yarn --frozen-lockfile
+    - run: yarn build
     - run: yarn test
     - run: ls build
