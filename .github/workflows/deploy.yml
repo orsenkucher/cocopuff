@@ -23,12 +23,14 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - run: cd cocopuff
+    - run: yarn cache clean
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node-version }}
     - name: Install dependencies
       run: yarn --frozen-lockfile
+    - uses: ./
     - run: yarn build
     - run: yarn test
     - run: ls build
