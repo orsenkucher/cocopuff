@@ -5,7 +5,7 @@ name: Cocopuff deploy
 
 on:
   push:
-    branches: [ $default-branch ]
+    branches: [ master ]
     
   # for manual triggering
   workflow_dispatch: 
