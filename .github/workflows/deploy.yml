@@ -41,6 +41,5 @@ jobs:
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.KEY }}
         port: ${{ secrets.PORT }}
-        rm: true
-        source: "./build/*"
-        target: "/var/www/cocopuff.dev/html"
+        source: "build/"
+        target: "/var/www/cocopuff.dev/html/"
