@@ -42,5 +42,6 @@ jobs:
         key: ${{ secrets.KEY }}
         port: ${{ secrets.PORT }}
         overwrite: true
-        source: "cocopuff/build/*"
-        target: "/var/www/cocopuff.dev/html"
+        source: "cocopuff/build/"
+        target: "/var/www/cocopuff.dev/html/"
+        strip_components: 2
