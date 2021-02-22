@@ -10,6 +10,10 @@ on:
   # for manual triggering
   workflow_dispatch: 
 
+defaults:
+  run:
+    working-directory: cocopuff
+
 jobs:
   build:
 
@@ -22,8 +26,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - run: cd cocopuff
-    - run: yarn cache clean
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v2
       with:
@@ -31,8 +33,6 @@ jobs:
     - name: Install dependencies
       run: yarn --frozen-lockfile
     - run: pwd
-    - run: ls -a
-    - run: cd cocopuff
     - run: ls -a
     - run: yarn build
     - run: yarn test
