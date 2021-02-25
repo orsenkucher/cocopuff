@@ -7,6 +7,10 @@ on:
   pull_request:
     branches: [ master ]
     paths: [flows/**.go]
+    
+defaults:
+  run:
+    working-directory: flows
 
 jobs:
 
