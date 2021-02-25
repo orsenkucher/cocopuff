@@ -3,6 +3,7 @@ name: Cocopuff deploy
 on:
   push:
     branches: [ master ]
+    paths: [ 'cocopuff/**' ]
     
   # for manual triggering
   workflow_dispatch: 
