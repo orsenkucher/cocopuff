@@ -93,6 +93,14 @@ func reveal(sugar *zap.SugaredLogger, key encio.EncIO, path string) error {
 
 func classifySecrets(sugar *zap.SugaredLogger, key encio.EncIO) error {
 	dir := "../flows.secret"
+
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		err = os.Mkdir(dir, os.ModeDir)
+		if err != nil {
+			return err
+		}
+	}
+
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
 		return err
