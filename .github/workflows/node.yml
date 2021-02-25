@@ -4,6 +4,10 @@ on:
   pull_request:
     branches: [ master ]
     paths: [ 'cocopuff/**' ]
+    
+defaults:
+  run:
+    working-directory: cocopuff
 
 jobs:
   build:
