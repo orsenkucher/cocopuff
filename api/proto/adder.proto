@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package api;
+
+option go_package = "github.com/orsenkucher/cocopuff/pkg/api";
+
+service Adder{
+  rpc Add (AddRequest) returns (AddResponse);
+}
+
+message AddRequest{
+  int32 x = 1;
+  int32 y = 2;
+}
+
+message AddResponse{
+  int32 result = 1;
+}

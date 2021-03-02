@@ -6,4 +6,5 @@ require (
 	github.com/matryer/is v1.4.0
 	github.com/orsenkucher/nothing/encio v0.0.0-20210213122514-0c2f26b7806a
 	go.uber.org/zap v1.16.0
+	golang.org/x/tools v0.0.0-20191114200427-caa0b0f7d508 // indirect
 )
