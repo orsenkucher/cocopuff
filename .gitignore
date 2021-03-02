@@ -1,2 +1,5 @@
 **/*.secret*
 !**/*.enc*
+
+# Protobuf generated code
+**/*.pb.go
