@@ -6,3 +6,4 @@
 *.debug
 *.bytecode
 flow.config
+cocopuff/src/cocopuff_app.js

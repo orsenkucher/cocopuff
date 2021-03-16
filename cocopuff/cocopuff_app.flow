@@ -1,0 +1,6 @@
+import material/material2tropic;
+
+main() {
+	ui = MEmpty();
+	mrender(makeMaterialManager([]), true, ui)
+}
