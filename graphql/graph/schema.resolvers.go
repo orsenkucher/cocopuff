@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 
+	"github.com/orsenkucher/cocopuff/graphql/graph/generated"
 	"github.com/orsenkucher/cocopuff/graphql/graph/model"
 )
 
