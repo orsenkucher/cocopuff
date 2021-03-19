@@ -7,7 +7,7 @@ package adder
 import (
 	"context"
 
-	"github.com/orsenkucher/cocopuff/pkg/api"
+	"github.com/orsenkucher/cocopuff/adder/api"
 )
 
 type AdderServer struct {

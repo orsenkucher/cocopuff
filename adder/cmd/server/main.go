@@ -10,8 +10,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/orsenkucher/cocopuff/pkg/adder"
-	"github.com/orsenkucher/cocopuff/pkg/api"
+	"github.com/orsenkucher/cocopuff/adder/adder"
+	"github.com/orsenkucher/cocopuff/adder/api"
 	"google.golang.org/grpc"
 )
 

@@ -8,9 +8,7 @@ directive @auth(
 
 enum Role {
   ADMIN
-  REVIEWER
   USER
-  UNKNOWN
 }
 
 type Todo {

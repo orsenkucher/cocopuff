@@ -1,7 +1,7 @@
 //go:generate gqlgen
 package graph
 
-import "github.com/orsenkucher/graphql/graph/model"
+import "github.com/orsenkucher/cocopuff/graphql/graph/model"
 
 // This file will not be regenerated automatically.
 //
