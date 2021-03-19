@@ -6,8 +6,7 @@ package graph
 import (
 	"context"
 
-	"github.com/orsenkucher/graphql/graph/generated"
-	"github.com/orsenkucher/graphql/graph/model"
+	"github.com/orsenkucher/cocopuff/graphql/graph/model"
 )
 
 func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
