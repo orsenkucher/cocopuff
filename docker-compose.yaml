@@ -1,0 +1,20 @@
+services:
+  graphql:
+    container_name: graphql
+    image: golang:latest
+    networks:
+      - coconet
+    expose:
+      - "8080"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./:/services
+    working_dir: /services
+    command: "go run graphql/server.go"
+    restart: always
+
+networks:
+  coconet:
+    external:
+      name: coconet
