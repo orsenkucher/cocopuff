@@ -9,7 +9,8 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
-	// "google.golang.org/grpc/resolver"
+	"github.com/orsenkucher/cocopuff/graphql/gql"
+	"github.com/orsenkucher/cocopuff/graphql/resolver"
 )
 
 const defaultPort = "8080"
@@ -20,7 +21,7 @@ func main() {
 		port = defaultPort
 	}
 
-	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &resolver.Resolver{}}))
+	srv := handler.NewDefaultServer(gql.NewExecutableSchema(gql.Config{Resolvers: &resolver.Resolver{}}))
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", srv)
