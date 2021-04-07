@@ -2,11 +2,11 @@ name: Cocopuff deploy
 
 on:
   push:
-    branches: [ master ]
-    paths: [ 'cocopuff/**' ]
-    
+    branches: [master]
+    paths: ["cocopuff/**"]
+
   # for manual triggering
-  workflow_dispatch: 
+  workflow_dispatch:
 
 defaults:
   run:
@@ -14,7 +14,6 @@ defaults:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     strategy:
@@ -23,26 +22,26 @@ jobs:
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v2
-      with:
-        node-version: ${{ matrix.node-version }}
-    - name: Install dependencies
-      run: yarn --frozen-lockfile
-    - run: pwd
-    - run: ls -a
-    - run: yarn test
-    - run: yarn build
-    - run: ls build
-    - name: Deploy the build
-      uses: appleboy/scp-action@master
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        key: ${{ secrets.KEY }}
-        port: ${{ secrets.PORT }}
-        overwrite: true
-        source: "cocopuff/build/"
-        target: "/var/www/cocopuff.dev/html/"
-        strip_components: 2
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install dependencies
+        run: yarn --frozen-lockfile
+      - run: pwd
+      - run: ls -a
+      - run: yarn test
+      - run: yarn build
+      - run: ls build
+      - name: Deploy the build
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
+          overwrite: true
+          source: "cocopuff/build/"
+          target: "/var/www/cocopuff.dev/html/"
+          strip_components: 2
