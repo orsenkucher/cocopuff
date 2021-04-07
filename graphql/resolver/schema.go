@@ -10,6 +10,10 @@ import (
 	"github.com/orsenkucher/cocopuff/graphql/gql"
 )
 
+func (r *accountResolver) Orders(ctx context.Context, obj *gql.Account) ([]*gql.Order, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *mutationResolver) CreateAccount(ctx context.Context, account gql.AccountInput) (*gql.Account, error) {
 	panic(fmt.Errorf("not implemented"))
 }
@@ -30,11 +34,15 @@ func (r *queryResolver) Products(ctx context.Context, pagination *gql.Pagination
 	panic(fmt.Errorf("not implemented"))
 }
 
+// Account returns gql.AccountResolver implementation.
+func (r *Resolver) Account() gql.AccountResolver { return &accountResolver{r} }
+
 // Mutation returns gql.MutationResolver implementation.
 func (r *Resolver) Mutation() gql.MutationResolver { return &mutationResolver{r} }
 
 // Query returns gql.QueryResolver implementation.
 func (r *Resolver) Query() gql.QueryResolver { return &queryResolver{r} }
 
+type accountResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }

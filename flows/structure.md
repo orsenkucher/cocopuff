@@ -16,7 +16,8 @@
   * pb
     > `protoc` compiled Protobuf.
   * gql
-    > `gqlgen` generated code.
+    > `gqlgen` generated code.  
+    >  `graphql-autobind` handwritten models.
   * gqlgen.yml
   * resolver
     * schema.go

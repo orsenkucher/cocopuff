@@ -1,3 +1,5 @@
+//go:generate protoc -I ../api/proto --go_out=./pb --go_opt=paths=source_relative --go-grpc_out=./pb --go-grpc_opt=paths=source_relative ../api/proto/account.proto
+
 package main
 
 import (
@@ -10,8 +12,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/orsenkucher/cocopuff/adder/adder"
-	"github.com/orsenkucher/cocopuff/adder/api"
+	"github.com/orsenkucher/cocopuff/account/pb"
+	"github.com/orsenkucher/cocopuff/account/service"
 	"google.golang.org/grpc"
 )
 
@@ -47,8 +49,7 @@ func startServer(ctx context.Context) error {
 	var opts []grpc.ServerOption
 	grpcServer := grpc.NewServer(opts...)
 
-	// better to rename api to pb
-	api.RegisterAdderServer(grpcServer, &adder.AdderServer{})
+	pb.RegisterAccountingServer(grpcServer, &service.AccountingServer{})
 	go grpcServer.Serve(lis)
 
 	laddr, err := net.ResolveTCPAddr("tcp", ":8080")
