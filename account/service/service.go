@@ -6,16 +6,17 @@ import (
 	"github.com/orsenkucher/cocopuff/account/pb"
 )
 
-type AccountingServer struct {
-	pb.UnimplementedAccountingServer
+type AccountServiceServer struct {
+	pb.UnimplementedAccountServiceServer
 }
 
-var _ pb.AccountingServer = (*AccountingServer)(nil)
+var _ pb.AccountServiceServer = (*AccountServiceServer)(nil)
 
-func (s *AccountingServer) PostAccount(ctx context.Context, req *pb.PostAccountRequest) (*pb.PostAccountResponse, error) {
-	return &pb.PostAccountResponse{}, nil
+func (s *AccountServiceServer) CreateAccount(ctx context.Context, req *pb.CreateAccountRequest) (*pb.Account, error) {
 }
 
-// PostAccount(context.Context, *PostAccountRequest) (*PostAccountResponse, error)
-// GetAccount(context.Context, *GetAccountRequest) (*GetAccountResponse, error)
-// GetAccounts(context.Context, *GetAccountsRequest) (*GetAccountsResponse, error)
+func (s *AccountServiceServer) GetAccount(ctx context.Context, req *pb.GetAccountRequest) (*pb.Account, error) {
+}
+
+func (s *AccountServiceServer) ListAccounts(ctx context.Context, req *pb.ListAccountsRequest) (*pb.ListAccountsResponse, error) {
+}

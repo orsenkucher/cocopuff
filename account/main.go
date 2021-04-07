@@ -50,7 +50,7 @@ func startServer(ctx context.Context) error {
 	var opts []grpc.ServerOption
 	grpcServer := grpc.NewServer(opts...)
 
-	pb.RegisterAccountingServer(grpcServer, &service.AccountingServer{})
+	pb.RegisterAccountServiceServer(grpcServer, &service.AccountServiceServer{})
 	go grpcServer.Serve(lis)
 
 	laddr, err := net.ResolveTCPAddr("tcp", ":8080")
