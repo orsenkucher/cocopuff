@@ -1,5 +1,7 @@
 ## Flows
 - [Процесс интеграции с сервером](../flows/ci.md)
+- [Работа с gRPC](../flows/grpc.md)
+- [Структура проекта](../flows/structure.md)
 - [Формально описанные конструкты](../flows.secret/formalism.md)
 - [Полезные ресурсы](../flows.secret/resources.md)
 - [Открытые вопросы](../flows.secret/questions.md)
