@@ -14,15 +14,16 @@ export PATH="$PATH:$(go env GOPATH)/bin"
 
 В `.proto` файле прописываем полный путь для импорта пакета содержащего сгенерированный код 
 ```protobuf
-option go_package = "github.com/orsenkucher/cocopuff/pkg/api";
+option go_package = "github.com/orsenkucher/cocopuff/<service>/pb";
 ```
 
 Генерим сервер и клиент
 ```bash
-protoc -I ./api/proto \
-    --go_out=./pkg/api --go_opt=paths=source_relative \
-    --go-grpc_out=./pkg/api --go-grpc_opt=paths=source_relative \
-    ./api/proto/adder.proto
+mkdir ./pb
+protoc -I ../api/proto \
+    --go_out=./pb --go_opt=paths=source_relative \
+    --go-grpc_out=./pb --go-grpc_opt=paths=source_relative \
+    ../api/proto/account.proto
 ```
 
 Для обновления зависимостей
@@ -33,7 +34,9 @@ go get -u ./... # тут аккуратно
 
 Добавляем комментарий в main.go
 ```go
-// go:generate protoc ./account.proto --go_out=plugins=grpc:./pb
-
-protoc -I ./api/proto --go_out=plugins=grpc:pkg/api api/proto/adder.proto
+//go:generate mkdir ./pb
+//go:generate protoc -I ../api/proto --go_out=./pb --go_opt=paths=source_relative --go-grpc_out=./pb --go-grpc_opt=paths=source_relative ../api/proto/account.proto
+```
+```bash
+go generate ./...
 ```

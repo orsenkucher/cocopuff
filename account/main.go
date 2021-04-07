@@ -1,3 +1,4 @@
+//go:generate mkdir ./pb
 //go:generate protoc -I ../api/proto --go_out=./pb --go_opt=paths=source_relative --go-grpc_out=./pb --go-grpc_opt=paths=source_relative ../api/proto/account.proto
 
 package main
