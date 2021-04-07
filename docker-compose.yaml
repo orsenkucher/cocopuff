@@ -11,7 +11,7 @@ services:
     volumes:
       - ./:/services
     working_dir: /services
-    command: "go run graphql/server.go"
+    command: "go run graphql/main.go"
     restart: always
 
 networks:
