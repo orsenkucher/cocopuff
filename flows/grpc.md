@@ -4,8 +4,11 @@
 
 Плагины для Go  
 ```bash
-go get google.golang.org/protobuf/cmd/protoc-gen-go 
-go get google.golang.org/grpc/cmd/protoc-gen-go-grpc
+go get -u -d google.golang.org/protobuf/cmd/protoc-gen-go &&
+go install google.golang.org/protobuf/cmd/protoc-gen-go &&
+
+go get -u -d google.golang.org/grpc/cmd/protoc-gen-go-grpc &&
+go install google.golang.org/grpc/cmd/protoc-gen-go-grpc
 ```
 Убеждаемся что `protoc` найдет плагины в `PATH`
 ```bash
@@ -29,7 +32,7 @@ protoc -I ../api/proto \
 Для обновления зависимостей
 ```bash
 go mod tidy
-go get -u ./... # тут аккуратно
+go get -u -d ./... # тут аккуратно
 ```
 
 Добавляем комментарий в main.go
