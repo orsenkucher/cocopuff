@@ -1,8 +1,6 @@
 **/*.secret*
 !**/*.enc*
 
-# Protobuf generated code
-**/*.pb.go
 *.debug
 *.bytecode
 flow.config

@@ -34,8 +34,8 @@ go get -u ./... # тут аккуратно
 
 Добавляем комментарий в main.go
 ```go
-//go:generate mkdir -p ./pb
-//go:generate protoc -I ../api/proto --go_out=./pb --go_opt=paths=source_relative --go-grpc_out=./pb --go-grpc_opt=paths=source_relative ../api/proto/account.proto
+//go:generate mkdir ./pb -p
+//go:generate protoc ../api/proto/account.proto -I ../api/proto --go_out=./pb --go_opt=paths=source_relative --go-grpc_out=./pb --go-grpc_opt=paths=source_relative
 ```
 ```bash
 go generate ./...
