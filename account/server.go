@@ -1,4 +1,7 @@
-package pkg
+//go:generate mkdir ./pb -p
+//go:generate protoc ../api/proto/account.proto -I ../api/proto --go_out=./pb --go_opt=paths=source_relative --go-grpc_out=./pb --go-grpc_opt=paths=source_relative
+
+package account
 
 import (
 	"context"
@@ -14,18 +17,20 @@ type AccountServiceServer struct {
 	service AccountService
 }
 
-func ListenGRPC(s AccountServiceServer, port int) error {
+var _ pb.AccountServiceServer = (*AccountServiceServer)(nil)
+
+func ListenGRPC(service AccountService, port int) error {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		return err
 	}
 
 	var opts []grpc.ServerOption
-	grpcServer := grpc.NewServer(opts...)
+	srv := grpc.NewServer(opts...)
 
-	pb.RegisterAccountServiceServer(grpcServer, &AccountServiceServer{})
+	pb.RegisterAccountServiceServer(srv, &AccountServiceServer{service: service})
 
-	return grpcServer.Serve(lis)
+	return srv.Serve(lis)
 }
 
 func (s *AccountServiceServer) CreateAccount(ctx context.Context, req *pb.CreateAccountRequest) (*pb.Account, error) {

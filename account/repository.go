@@ -1,4 +1,4 @@
-package pkg
+package account
 
 import (
 	"context"
@@ -7,17 +7,17 @@ import (
 	"gorm.io/gorm"
 )
 
-type Repository interface {
+type AccountRepository interface {
 	CreateAccount(ctx context.Context, a Account) error
 	GetAccountByID(ctx context.Context, id string) (*Account, error)
 	ListAccounts(ctx context.Context, skip uint64, take uint64) ([]Account, error)
 }
 
-type postgresRepository struct {
+type accountRepository struct {
 	db *gorm.DB
 }
 
-func NewPostgresRepository(dsn string) (*postgresRepository, error) {
+func NewPostgresRepository(dsn string) (*accountRepository, error) {
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, err
@@ -28,21 +28,21 @@ func NewPostgresRepository(dsn string) (*postgresRepository, error) {
 		return nil, err
 	}
 
-	return &postgresRepository{db}, nil
+	return &accountRepository{db}, nil
 }
 
-func (r *postgresRepository) CreateAccount(ctx context.Context, a Account) error {
+func (r *accountRepository) CreateAccount(ctx context.Context, a Account) error {
 	r.db.Create(&a)
 	return nil
 }
 
-func (r *postgresRepository) GetAccountByID(ctx context.Context, id string) (*Account, error) {
+func (r *accountRepository) GetAccountByID(ctx context.Context, id string) (*Account, error) {
 	var a *Account
 	r.db.First(a, id)
 	return a, nil
 }
 
-func (r *postgresRepository) ListAccounts(ctx context.Context, skip uint64, take uint64) ([]Account, error) {
+func (r *accountRepository) ListAccounts(ctx context.Context, skip uint64, take uint64) ([]Account, error) {
 	db, err := r.db.DB()
 	if err != nil {
 		return nil, err
