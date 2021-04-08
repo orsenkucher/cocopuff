@@ -1,4 +1,4 @@
-package pkg
+package account
 
 import (
 	"context"
@@ -18,10 +18,10 @@ type Account struct {
 }
 
 type accountService struct {
-	repository Repository
+	repository AccountRepository
 }
 
-func NewService(r Repository) AccountService {
+func NewService(r AccountRepository) *accountService {
 	return &accountService{r}
 }
 
