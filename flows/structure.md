@@ -39,8 +39,13 @@
     >   FROM build AS pure
     >   ```
 * account
-  * main.go
+  * cmd
+    > As main.go resides in `package main`, however I want to keep service logic inside `package account`.  
+    * main.go
   * pb
+  * server.go
+  * service.go
+  * repository.go
   * app.dockerfile
   * db.dockerfile
   > ... and other services
