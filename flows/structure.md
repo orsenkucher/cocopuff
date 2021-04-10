@@ -27,7 +27,7 @@
     > batch and deduplicate queries.
   * client.go
     > with `go:generate` comments. As it uses grpc and is on surface.
-  * app.dockerfile
+  * cmd.dockerfile
     > - stage 1: build `go.mod` dependencies.
     >   ```go
     >   go.mod
@@ -55,7 +55,7 @@
     > with `go:generate` comments, as it closely uses grpc.
   * service.go
   * repository.go
-  * app.dockerfile
+  * cmd.dockerfile
   * db.dockerfile
   > ... and other services
 * go.mod

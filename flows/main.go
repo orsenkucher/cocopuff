@@ -18,7 +18,7 @@ func main() {
 	sugar := logger.Sugar()
 
 	if err := run(sugar); err != nil {
-		sugar.Fatalf("Application failed: %v", err)
+		sugar.Fatalf("Service failed: %v", err)
 	}
 }
 
