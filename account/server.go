@@ -19,7 +19,7 @@ type AccountServiceServer struct {
 
 var _ pb.AccountServiceServer = (*AccountServiceServer)(nil)
 
-func ListenGRPC(service AccountService, port int) error {
+func ListenGRPC(ctx context.Context, service AccountService, port int) error {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		return err
@@ -31,6 +31,7 @@ func ListenGRPC(service AccountService, port int) error {
 	pb.RegisterAccountServiceServer(srv, &AccountServiceServer{service: service})
 
 	return srv.Serve(lis)
+	// TODO: srv.GracefulStop()
 }
 
 func (s *AccountServiceServer) CreateAccount(ctx context.Context, req *pb.CreateAccountRequest) (*pb.Account, error) {
