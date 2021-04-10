@@ -22,7 +22,7 @@ services:
   account:
     build:
       context: .
-      dockerfile: ./account/app.dockerfile
+      dockerfile: ./account/cmd.dockerfile
     networks:
         - coconet
     depends_on:
