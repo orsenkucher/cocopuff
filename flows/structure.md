@@ -12,7 +12,8 @@
 * graphql
   > This service is an edge gateway. It resolves graphql queries by being a shim to other services via grpc.  
   > Go code is generated with `99designs/gqlgen`.
-  * main.go
+  * cmd
+    * main.go
   * pb
     > `protoc` compiled Protobuf.
   * gql
@@ -21,7 +22,11 @@
   * gqlgen.yml
   * resolver
     * schema.go
-    * resolvers.go
+    * resolver.go
+  * dataloader
+    > batch and deduplicate queries.
+  * client.go
+    > with `go:generate` comments. As it uses grpc and is on surface.
   * app.dockerfile
     > - stage 1: build `go.mod` dependencies.
     >   ```go
@@ -43,7 +48,11 @@
     > As main.go resides in `package main`, however I want to keep service logic inside `package account`.  
     * main.go
   * pb
+  * log
+  * env
+  * migrations
   * server.go
+    > with `go:generate` comments, as it closely uses grpc.
   * service.go
   * repository.go
   * app.dockerfile
