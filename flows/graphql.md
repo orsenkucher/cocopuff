@@ -40,7 +40,7 @@ import _ "github.com/vektah/dataloaden"
 ```go
 //go:generate dataloaden <Type>Loader string *github.com/orsenkucher/cocopuff/graphql.<Type>
 
-//go:generate <Type>SliceLoader int []*github.com/orsenkucher/cocopuff/graphql.<Type>
+//go:generate dataloaden <Type>SliceLoader int []*github.com/orsenkucher/cocopuff/graphql.<Type>
 ```
 ```bash
 go generate ./...
