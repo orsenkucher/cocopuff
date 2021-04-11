@@ -10,17 +10,19 @@ require (
 	github.com/jackc/pgx/v4 v4.11.0 // indirect
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/segmentio/ksuid v1.0.3
+	github.com/vektah/dataloaden v0.3.0
 	github.com/vektah/gqlparser/v2 v2.1.0
 	go.uber.org/automaxprocs v1.4.0
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0
-	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4 // indirect
+	golang.org/x/mod v0.4.2 // indirect
+	golang.org/x/net v0.0.0-20210410081132-afb366fc7cd1 // indirect
 	golang.org/x/sys v0.0.0-20210403161142-5e06dd20ab57 // indirect
-	golang.org/x/text v0.3.6 // indirect
 	google.golang.org/genproto v0.0.0-20210406143921-e86de6bf7a46 // indirect
 	google.golang.org/grpc v1.37.0
 	google.golang.org/protobuf v1.26.0
 	gorm.io/driver/postgres v1.0.8
-	gorm.io/gorm v1.21.6
+	gorm.io/gorm v1.21.7
 )
