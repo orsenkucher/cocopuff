@@ -68,6 +68,15 @@
   > `go build` ignores this file.   
   > `go.mod` will keep those imports and maintain versioning.  
   > We want the whole team to consistently generate the same code at any given point in time.
+* Makefile
+  > on windows as admin
+  > ```ps
+  > choco install make
+  > ```
+  >```bash
+  > make download
+  > make tools
+  >```
 * docker-compose.yaml
 * .github
 * .gitignore
