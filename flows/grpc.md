@@ -10,6 +10,19 @@ go install google.golang.org/protobuf/cmd/protoc-gen-go &&
 go get -u -d google.golang.org/grpc/cmd/protoc-gen-go-grpc &&
 go install google.golang.org/grpc/cmd/protoc-gen-go-grpc
 ```
+`tools.go`
+```go
+// +build tools
+
+package tools
+
+import (
+	_ "google.golang.org/grpc/cmd/protoc-gen-go-grpc"
+	_ "google.golang.org/protobuf/cmd/protoc-gen-go"
+)
+
+```
+
 Убеждаемся что `protoc` найдет плагины в `PATH`
 ```bash
 export PATH="$PATH:$(go env GOPATH)/bin"
