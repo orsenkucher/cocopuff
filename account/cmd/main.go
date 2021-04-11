@@ -65,6 +65,7 @@ func ctx(spec specification) context.Context {
 	return ctx
 }
 
+// pub: gs
 func graceful(c context.Context) context.Context {
 	ctx, cancel := context.WithCancel(c)
 	done := make(chan struct{})
@@ -74,6 +75,7 @@ func graceful(c context.Context) context.Context {
 	return ctx
 }
 
+// pub: gs
 func listen(
 	ctx context.Context,
 	cancel context.CancelFunc,
