@@ -64,6 +64,10 @@
   * db.dockerfile
   > ... and other services
 * go.mod
+* tools.go
+  > `go build` ignores this file.   
+  > `go.mod` will keep those imports and maintain versioning.  
+  > We want the whole team to consistently generate the same code at any given point in time.
 * docker-compose.yaml
 * .github
 * .gitignore

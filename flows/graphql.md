@@ -3,6 +3,15 @@
 go get -u -d github.com/99designs/gqlgen &&
 go install github.com/99designs/gqlgen
 ```
+`tools.go`
+```go
+// +build tools
+
+package tools
+
+import _ "github.com/99designs/gqlgen"
+
+```
 
 Добавляем комментарий в main.go
 ```go
@@ -16,6 +25,15 @@ go generate ./...
 ```bash
 go get -u -d github.com/vektah/dataloaden &&
 go install github.com/vektah/dataloaden
+```
+`tools.go`
+```go
+// +build tools
+
+package tools
+
+import _ "github.com/vektah/dataloaden"
+
 ```
 
 Добавляем комментарий в dataloader.go
