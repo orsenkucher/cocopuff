@@ -7,7 +7,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/orsenkucher/cocopuff/graphql/dataloader"
 	"github.com/orsenkucher/cocopuff/graphql/gql"
+	"go.uber.org/zap"
 )
 
 func (r *accountResolver) Orders(ctx context.Context, obj *gql.Account) ([]*gql.Order, error) {
@@ -27,7 +29,53 @@ func (r *mutationResolver) CreateOrder(ctx context.Context, order gql.OrderInput
 }
 
 func (r *queryResolver) Accounts(ctx context.Context, pagination *gql.PaginationInput, id *string) ([]*gql.Account, error) {
-	panic(fmt.Errorf("not implemented"))
+	// TODO: how to pass context to grpc call
+	// ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	// defer cancel()
+
+	sugar := r.sugar.With(
+		zap.String("package", "resolver"),
+		zap.String("type", "queryResolver"),
+		zap.String("method", "Accounts"),
+	)
+
+	// Get single
+	if id != nil {
+		a, err := dataloader.For(ctx).AccountById.Load(*id)
+		if err != nil {
+			sugar.Error("failed get by id:", zap.Error(err))
+			return nil, err
+		}
+		return []*gql.Account{{
+			ID:   a.ID,
+			Name: a.Name,
+		}}, nil
+	}
+
+	// Else get page
+	skip, take := uint64(0), uint64(0)
+	if pagination != nil {
+		skip, take = pagination.Bounds()
+	}
+
+	// TODO: use dataloader?
+	// I probably can't
+	accountList, err := r.client.ListAccounts(ctx, skip, take)
+	if err != nil {
+		sugar.Error("failed to list:", zap.Error(err))
+		return nil, err
+	}
+
+	var accounts []*gql.Account
+	for _, a := range accountList {
+		account := &gql.Account{
+			ID:   a.ID,
+			Name: a.Name,
+		}
+		accounts = append(accounts, account)
+	}
+
+	return accounts, nil
 }
 
 func (r *queryResolver) Products(ctx context.Context, pagination *gql.PaginationInput, query *string, id *string) ([]*gql.Product, error) {
