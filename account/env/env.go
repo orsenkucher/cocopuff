@@ -1,11 +1,11 @@
 package env
 
-type Key string
+type CtxKey string
 
 const (
-	Tags       Key = "tags"
-	Service    Key = "service"
-	Version    Key = "version"
-	Release    Key = "release"
-	Deployment Key = "deployment"
+	Tags       CtxKey = "tags"
+	Service    CtxKey = "service"
+	Version    CtxKey = "version"
+	Release    CtxKey = "release"
+	Deployment CtxKey = "deployment"
 )
