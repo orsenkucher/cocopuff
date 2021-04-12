@@ -19,6 +19,9 @@ services:
     environment:
       GRAPHQL_PORT: 9100
       ACCOUNT_SERVICE_URL: account:9100
+      GRAPHQL_DEPLOYMENT: docker
+      GRAPHQL_RELEASE: 1
+      GRAPHQL_VERSION: v0.0.1
     volumes:
       - ./:/services
     networks:
@@ -40,6 +43,8 @@ services:
       ACCOUNT_PORT: 9100
       ACCOUNT_DSN: postgres://cocopuff:123456@account_db/cocopuff?sslmode=disable
       ACCOUNT_DEPLOYMENT: docker
+      ACCOUNT_RELEASE: 1
+      ACCOUNT_VERSION: v0.0.1
     volumes:
       - ./:/services
     networks:
@@ -54,6 +59,8 @@ services:
       POSTGRES_DB: cocopuff
       POSTGRES_USER: cocopuff
       POSTGRES_PASSWORD: 123456
+    networks:
+      - coconet
     restart: unless-stopped
 
 networks:

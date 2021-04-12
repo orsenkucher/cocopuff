@@ -19,8 +19,8 @@ gen:
 .PHONY: generate
 generate: tools gen
 
-.PHONY: run
-run: build up
+.PHONY: docker
+docker: build up
 
 .PHONY: build-deps
 build-deps:
@@ -36,3 +36,8 @@ build: build-deps
 up:
 	@echo Starting up
 	@docker-compose up
+
+.PHONY: down
+down:
+	@echo Shutting down
+	@docker-compose down
