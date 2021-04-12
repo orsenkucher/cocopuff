@@ -37,7 +37,7 @@
     >   ```go
     >   go.mod
     >   go.sum
-    >   go download
+    >   go mod download
     >   ```
     > - stage 2: build service.  
     >   ```dockerfile
