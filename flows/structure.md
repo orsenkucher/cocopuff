@@ -37,7 +37,7 @@
     >   ```go
     >   go.mod
     >   go.sum
-    >   go download
+    >   go mod download
     >   ```
     > - stage 2: build service.  
     >   ```dockerfile
@@ -77,6 +77,9 @@
   > make download
   > make tools
   >```
+* deps.dockerfile
+  > Image with all dependencies of the project.  
+  > Is tagged as `deps`.
 * docker-compose.yaml
 * .github
 * .gitignore
