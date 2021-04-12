@@ -1,42 +1,49 @@
 services:
+  deps:
+    image: deps
+    build:
+      context: .
+      dockerfile: ./deps.dockerfile
+
   graphql:
-    container_name: graphql
-    image: golang:latest
-    networks:
-      - coconet
+    build:
+      context: .
+      dockerfile: ./graphql/cmd.dockerfile
     depends_on:
+      - deps
       - account
     expose:
       - "9100"
     ports:
       - "9100:9100"
-    volumes:
-      - ./:/services
     environment:
       GRAPHQL_PORT: 9100
       ACCOUNT_SERVICE_URL: account:9100
-    working_dir: /services
-    command: "go run graphql/cmd/main.go"
+    volumes:
+      - ./:/services
+    networks:
+      - coconet
     restart: on-failure
 
   account:
     build:
       context: .
       dockerfile: ./account/cmd.dockerfile
-    networks:
-        - coconet
     depends_on:
+      - deps
       - account_db
     expose:
       - "9100"
     ports:
       - "9099:9100"
-    volumes:
-      - ./:/services
     environment:
       ACCOUNT_PORT: 9100
       ACCOUNT_DSN: postgres://cocopuff:123456@account_db/cocopuff?sslmode=disable
       ACCOUNT_DEPLOYMENT: docker
+    volumes:
+      - ./:/services
+    networks:
+      - coconet
     restart: on-failure
 
   account_db:

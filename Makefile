@@ -18,3 +18,21 @@ gen:
 
 .PHONY: generate
 generate: tools gen
+
+.PHONY: run
+run: build up
+
+.PHONY: build-deps
+build-deps:
+	@echo Building dependencies image
+	@docker build -t deps -f ./deps.dockerfile .
+
+.PHONY: build
+build: build-deps
+	@echo Building images
+	@docker-compose build
+
+.PHONY: up
+up:
+	@echo Starting up
+	@docker-compose up
