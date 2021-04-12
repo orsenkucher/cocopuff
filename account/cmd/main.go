@@ -101,7 +101,7 @@ func run(ctx context.Context, sugar *zap.SugaredLogger, spec specification) erro
 		return err
 	}
 
-	serv := account.NewService(repo)
-
-	return account.ListenGRPC(ctx, serv, spec.Port)
+	service := account.NewAccountService(repo)
+	server := account.NewServer(sugar, service)
+	return <-server.ListenGRPC(ctx, spec.Port)
 }

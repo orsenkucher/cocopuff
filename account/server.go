@@ -10,18 +10,35 @@ import (
 	"sync"
 
 	"github.com/orsenkucher/cocopuff/account/pb"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
 
 type AccountServiceServer struct {
 	pb.UnimplementedAccountServiceServer
+	sugar   *zap.SugaredLogger
 	service AccountService
 }
 
 var _ pb.AccountServiceServer = (*AccountServiceServer)(nil)
 
-func ListenGRPC(ctx context.Context, service AccountService, port int) error {
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+func NewServer(
+	sugar *zap.SugaredLogger,
+	service AccountService,
+) *AccountServiceServer {
+	return &AccountServiceServer{
+		sugar:   sugar,
+		service: service,
+	}
+}
+
+func (s *AccountServiceServer) ListenGRPC(ctx context.Context, port int) <-chan error {
+	return ec(func() error { return s.listenGRPC(ctx, port) })
+}
+
+func (s *AccountServiceServer) listenGRPC(ctx context.Context, port int) error {
+	addr := fmt.Sprintf(":%d", port)
+	lis, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err
 	}
@@ -29,8 +46,9 @@ func ListenGRPC(ctx context.Context, service AccountService, port int) error {
 	var opts []grpc.ServerOption
 	srv := grpc.NewServer(opts...)
 
-	pb.RegisterAccountServiceServer(srv, &AccountServiceServer{service: service})
+	pb.RegisterAccountServiceServer(srv, s)
 
+	s.sugar.Info("start grpc server", zap.String("address", addr))
 	select {
 	case err := <-ec(func() error { return srv.Serve(lis) }):
 		return err
