@@ -92,3 +92,20 @@ func (c *Client) ListAccounts(ctx context.Context, skip uint64, take uint64) ([]
 
 	return accounts, nil
 }
+
+func (c *Client) ListAccountsPB(ctx context.Context, req *pb.ListAccountsRequest) ([]*Account, error) {
+	r, err := c.service.ListAccounts(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	accounts := []*Account{}
+	for _, a := range r.Accounts {
+		accounts = append(accounts, &Account{
+			ID:   a.Id,
+			Name: a.Name,
+		})
+	}
+
+	return accounts, nil
+}
