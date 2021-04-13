@@ -3,15 +3,13 @@ package main
 import (
 	"context"
 	"math/rand"
-	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
 	"github.com/kelseyhightower/envconfig"
 	"github.com/orsenkucher/cocopuff/account"
 	"github.com/orsenkucher/cocopuff/account/env"
 	"github.com/orsenkucher/cocopuff/account/log"
+	"github.com/orsenkucher/cocopuff/pub/gs"
 	_ "go.uber.org/automaxprocs"
 	"go.uber.org/zap"
 )
@@ -56,43 +54,13 @@ func main() {
 }
 
 func ctx(spec specification) context.Context {
-	ctx := graceful(context.Background())
+	ctx := gs.Wrap(context.Background())
 	ctx = context.WithValue(ctx, env.Service, service)
 	ctx = context.WithValue(ctx, env.Version, spec.Version)
 	ctx = context.WithValue(ctx, env.Release, spec.Release)
 	ctx = context.WithValue(ctx, env.Deployment, spec.Deployment)
 	ctx = context.WithValue(ctx, env.Tags, []string{spec.Deployment, spec.Version})
 	return ctx
-}
-
-// pub: gs
-func graceful(c context.Context) context.Context {
-	ctx, cancel := context.WithCancel(c)
-	done := make(chan struct{})
-	signals := []os.Signal{syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP}
-	go listen(ctx, cancel, done, signals...)
-	<-done
-	return ctx
-}
-
-// pub: gs
-func listen(
-	ctx context.Context,
-	cancel context.CancelFunc,
-	done chan struct{},
-	signals ...os.Signal,
-) {
-	ch := make(chan os.Signal, 1)
-	signal.Notify(ch, signals...)
-	close(done)
-	select {
-	case <-ctx.Done():
-		return
-	case <-ch:
-		cancel()
-		<-ch
-		os.Exit(1)
-	}
 }
 
 func run(ctx context.Context, sugar *zap.SugaredLogger, spec specification) error {
