@@ -6,7 +6,11 @@ import (
 	"strconv"
 
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
+	"github.com/gorilla/websocket"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/orsenkucher/cocopuff/graphql"
 	"github.com/orsenkucher/cocopuff/graphql/dataloader"
@@ -50,10 +54,21 @@ func main() {
 	}()
 
 	ctx := ctx(spec)
-	_ = ctx // TODO
+	_ = ctx // TODO:
 
 	// TODO: move to run()
 	// how about error logging in run?
+	router := chi.NewRouter()
+	router.Use(cors.Handler(cors.Options{
+		Debug:            !spec.Release,
+		AllowedOrigins:   []string{"https://*", "http://*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
+		ExposedHeaders:   []string{},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}))
+
 	client, err := graphql.NewClient(sugar, spec.AccountURL)
 	if err != nil {
 		sugar.Fatal("fail to dial:", zap.Error(err))
@@ -65,12 +80,22 @@ func main() {
 		Resolvers: resolver.NewResolver(sugar, client),
 	}))
 
-	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", dataloader.Middleware(srv, client))
+	srv.AddTransport(&transport.Websocket{
+		Upgrader: websocket.Upgrader{
+			CheckOrigin: func(r *http.Request) bool {
+				return true
+			},
+			ReadBufferSize:  1024,
+			WriteBufferSize: 1024,
+		},
+	})
+
+	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
+	router.Handle("/query", dataloader.Middleware(srv, client))
 
 	port := strconv.Itoa(spec.Port)
 	sugar.Infof("connect to http://localhost:%s/ for GraphQL playground", port)
-	sugar.Fatal(http.ListenAndServe(":"+port, nil))
+	sugar.Fatal(http.ListenAndServe(":"+port, router))
 	// TODO: http.GracefulStop
 	// TODO: move to server.go
 }
