@@ -1,12 +1,12 @@
 package ec
 
-import "github.com/orsenkucher/cocopuff/pub/wg"
+import "github.com/orsenkucher/cocopuff/pub/wait"
 
-// Go <-f()
+// Go run function and return in channel
 func Go(f func() error) <-chan error {
 	ch := make(chan error)
 
-	wg := wg.G{}
+	wg := wait.Group{}
 	wg.Add(func() {
 		ch <- f()
 	})
