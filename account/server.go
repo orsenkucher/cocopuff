@@ -7,9 +7,9 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"sync"
 
 	"github.com/orsenkucher/cocopuff/account/pb"
+	"github.com/orsenkucher/cocopuff/pub/ec"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
@@ -33,7 +33,7 @@ func NewServer(
 }
 
 func (s *AccountServiceServer) ListenGRPC(ctx context.Context, port int) <-chan error {
-	return ec(func() error { return s.listenGRPC(ctx, port) })
+	return ec.Go(func() error { return s.listenGRPC(ctx, port) })
 }
 
 func (s *AccountServiceServer) listenGRPC(ctx context.Context, port int) error {
@@ -50,32 +50,12 @@ func (s *AccountServiceServer) listenGRPC(ctx context.Context, port int) error {
 
 	s.sugar.Info("start grpc server", zap.String("address", addr))
 	select {
-	case err := <-ec(func() error { return srv.Serve(lis) }):
+	case err := <-ec.Go(func() error { return srv.Serve(lis) }):
 		return err
 	case <-ctx.Done():
 		srv.GracefulStop()
 		return ctx.Err()
 	}
-}
-
-// pub: ec, wg
-func ec(f func() error) <-chan error {
-	ch := make(chan error)
-
-	var wg sync.WaitGroup
-	wg.Add(1)
-
-	go func() {
-		defer wg.Done()
-		ch <- f()
-	}()
-
-	go func() {
-		wg.Wait()
-		close(ch)
-	}()
-
-	return ch
 }
 
 func (s *AccountServiceServer) CreateAccount(ctx context.Context, req *pb.CreateAccountRequest) (*pb.Account, error) {
