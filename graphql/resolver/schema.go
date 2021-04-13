@@ -9,6 +9,7 @@ import (
 
 	"github.com/orsenkucher/cocopuff/graphql/dataloader"
 	"github.com/orsenkucher/cocopuff/graphql/gql"
+	"github.com/orsenkucher/cocopuff/graphql/pb"
 	"go.uber.org/zap"
 )
 
@@ -60,7 +61,10 @@ func (r *queryResolver) Accounts(ctx context.Context, pagination *gql.Pagination
 
 	// TODO: use dataloader?
 	// I probably can't
-	accountList, err := r.client.ListAccounts(ctx, skip, take)
+	// accountList, err := r.client.ListAccounts(ctx, skip, take)
+	accountList, err := dataloader.For(ctx).AccountPaginated.Load(&pb.ListAccountsRequest{
+		Skip: skip, Take: take,
+	})
 	if err != nil {
 		sugar.Error("failed to list:", zap.Error(err))
 		return nil, err
