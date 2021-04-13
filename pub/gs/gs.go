@@ -7,8 +7,8 @@ import (
 	"syscall"
 )
 
-// Wrap context in graceful shutdown
-func Wrap(c context.Context) context.Context {
+// With graceful shutdown
+func With(c context.Context) context.Context {
 	ctx, cancel := context.WithCancel(c)
 	done := make(chan struct{})
 	signals := []os.Signal{syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP}

@@ -1,12 +1,12 @@
-package wg
+package wait
 
 import "sync"
 
-type G struct {
+type Group struct {
 	wg sync.WaitGroup
 }
 
-func (g *G) Add(f func()) {
+func (g *Group) Add(f func()) {
 	g.wg.Add(1)
 	go func() {
 		defer g.wg.Done()
@@ -14,6 +14,6 @@ func (g *G) Add(f func()) {
 	}()
 }
 
-func (g *G) Wait() {
+func (g *Group) Wait() {
 	g.wg.Wait()
 }

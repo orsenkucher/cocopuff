@@ -9,11 +9,11 @@
     > `gRPC` is the way our services communicate each other, so `Protobuf` describes contract between them.
     * account.proto
       > ... and other services
-* rfc: pkg, pub
+* rfc: pkg, **pub**
   > Shared packages.
-  * wg, wait, waitgroup
-  * gs, grace, graceful shutdown
-  * ec, errch, error channel
+  * wg, **wait**, waitgroup
+  * **gs**, grace, graceful shutdown
+  * **ec**, errch, error channel
 * graphql
   > This service is an edge gateway. It resolves graphql queries by being a shim to other services via grpc.  
   > Go code is generated with `99designs/gqlgen`.
