@@ -47,15 +47,15 @@ func main() {
 		}
 	}()
 
-	ctx := ctx(spec)
+	ctx := ctx(sugar, spec)
 	if err := run(ctx, sugar, spec); err != nil {
 		sugar.Fatal(err)
 	}
 }
 
-func ctx(spec specification) context.Context {
+func ctx(sugar *zap.SugaredLogger, spec specification) context.Context {
 	ctx := gs.With(context.Background())
-	ctx = env.With(ctx, service, spec.Deployment, spec.Version, spec.Release)
+	ctx = env.With(ctx, sugar, service, spec.Deployment, spec.Version, spec.Release)
 	return ctx
 }
 
