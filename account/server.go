@@ -51,6 +51,7 @@ func (s *AccountServiceServer) listenGRPC(ctx context.Context, port int) error {
 	s.sugar.Info("start grpc server", zap.String("address", addr))
 	select {
 	case err := <-ec.Go(func() error { return srv.Serve(lis) }):
+		srv.GracefulStop()
 		return err
 	case <-ctx.Done():
 		srv.GracefulStop()
