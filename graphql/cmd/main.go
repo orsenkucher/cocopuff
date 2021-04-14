@@ -90,8 +90,8 @@ func main() {
 		},
 	})
 
-	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	router.Handle("/query", dataloader.Middleware(srv, client))
+	router.Handle("/graphql", dataloader.Middleware(srv, client))
+	router.Handle("/playground", playground.Handler("GraphQL playground", "/graphql"))
 
 	port := strconv.Itoa(spec.Port)
 	sugar.Infof("connect to http://localhost:%s/ for GraphQL playground", port)
