@@ -8,7 +8,6 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
-	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/websocket"
 	"github.com/orsenkucher/cocopuff/graphql/gql"
@@ -35,16 +34,14 @@ func NewServer(
 	router.Use(cors)
 	router.Use(middleware...)
 
-	router.Handle("/graphql", server)
-	router.Handle("/playground", playground.Handler("GraphQL playground", "/graphql"))
-
-	return &GraphQLServer{sugar: sugar, router: router}
+	s := &GraphQLServer{sugar: sugar, router: router}
+	s.routes(server)
+	return s
 }
 
 func (s *GraphQLServer) ListenGraphQL(ctx context.Context, port int) <-chan error {
 	return ec.Go(func() error {
 		p := strconv.Itoa(port)
-
 		server := &http.Server{
 			Addr:    ":" + p,
 			Handler: s.router,
