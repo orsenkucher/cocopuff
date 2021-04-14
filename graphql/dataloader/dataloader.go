@@ -55,7 +55,7 @@ func For(ctx context.Context) *Dataloader {
 	}
 
 	if sugar, ok := ctx.Value(sugarCtx).(*zap.SugaredLogger); ok {
-		sugar.DPanic("fail to retrieve dataloader")
+		sugar.DPanic("fail to retrieve dataloader", zap.String("function", "For"))
 	}
 
 	return nil

@@ -13,6 +13,7 @@ import (
 	"github.com/orsenkucher/cocopuff/graphql/gql"
 	"github.com/orsenkucher/cocopuff/graphql/log"
 	"github.com/orsenkucher/cocopuff/graphql/resolver"
+	"github.com/orsenkucher/cocopuff/pub/care"
 	"github.com/orsenkucher/cocopuff/pub/gs"
 	_ "go.uber.org/automaxprocs"
 	"go.uber.org/zap"
@@ -51,7 +52,7 @@ func main() {
 
 	ctx := ctx(sugar, spec)
 	if err := run(ctx, sugar, spec); err != nil {
-		sugar.Fatal(zap.Error(err)) // how about zapperr, erreur analog?
+		sugar.Fatal(care.ToZap(err))
 	}
 }
 
@@ -67,7 +68,7 @@ func run(ctx context.Context, sugar *zap.SugaredLogger, spec specification) erro
 
 	client, err := graphql.NewClient(sugar, spec.AccountURL)
 	if err != nil {
-		sugar.Fatal("fail to dial:", zap.Error(err))
+		return care.Of(err, "fail to dial grpc client", zap.String("function", "run"))
 	}
 
 	defer client.Close()
