@@ -67,11 +67,11 @@ func main() {
 
 	defer client.Close()
 
-	srv := handler.NewDefaultServer(gql.NewExecutableSchema(gql.Config{
+	server := handler.NewDefaultServer(gql.NewExecutableSchema(gql.Config{
 		Resolvers: resolver.NewResolver(sugar, client),
 	}))
 
-	srv.AddTransport(&transport.Websocket{
+	server.AddTransport(&transport.Websocket{
 		Upgrader: websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool {
 				return true
@@ -83,7 +83,7 @@ func main() {
 
 	router.Use(dataloader.Middleware(sugar, client))
 
-	router.Handle("/graphql", srv)
+	router.Handle("/graphql", server)
 	router.Handle("/playground", playground.Handler("GraphQL playground", "/graphql"))
 
 	port := strconv.Itoa(spec.Port)
