@@ -58,16 +58,7 @@ func main() {
 
 	// TODO: move to run()
 	// how about error logging in run?
-	router := chi.NewRouter()
-	router.Use(cors.Handler(cors.Options{
-		Debug:            !spec.Release,
-		AllowedOrigins:   []string{"https://*", "http://*"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
-		ExposedHeaders:   []string{},
-		AllowCredentials: true,
-		MaxAge:           300,
-	}))
+	router := router(spec)
 
 	client, err := graphql.NewClient(sugar, spec.AccountURL)
 	if err != nil {
@@ -90,7 +81,9 @@ func main() {
 		},
 	})
 
-	router.Handle("/graphql", dataloader.Middleware(srv, client))
+	router.Use(dataloader.Middleware(sugar, client))
+
+	router.Handle("/graphql", srv)
 	router.Handle("/playground", playground.Handler("GraphQL playground", "/graphql"))
 
 	port := strconv.Itoa(spec.Port)
@@ -102,10 +95,20 @@ func main() {
 
 func ctx(spec specification) context.Context {
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, env.Service, service)
-	ctx = context.WithValue(ctx, env.Version, spec.Version)
-	ctx = context.WithValue(ctx, env.Release, spec.Release)
-	ctx = context.WithValue(ctx, env.Deployment, spec.Deployment)
-	ctx = context.WithValue(ctx, env.Tags, []string{spec.Deployment, spec.Version})
+	ctx = env.With(ctx, service, spec.Deployment, spec.Version, spec.Release)
 	return ctx
+}
+
+func router(spec specification) *chi.Mux {
+	router := chi.NewRouter()
+	router.Use(cors.Handler(cors.Options{
+		Debug:            !spec.Release,
+		AllowedOrigins:   []string{"https://*", "http://*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
+		ExposedHeaders:   []string{},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}))
+	return router
 }
