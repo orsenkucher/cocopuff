@@ -49,7 +49,7 @@ func main() {
 
 	ctx := ctx(sugar, spec)
 	if err := run(ctx, sugar, spec); err != nil {
-		sugar.Fatal(err)
+		sugar.Fatal(zap.Error(err))
 	}
 }
 
@@ -62,7 +62,7 @@ func ctx(sugar *zap.SugaredLogger, spec specification) context.Context {
 func run(ctx context.Context, sugar *zap.SugaredLogger, spec specification) error {
 	repo, err := account.NewAccountRepository(spec.DSN)
 	if err != nil {
-		return err
+		return err // fail to dial database
 	}
 
 	service := account.NewAccountService(repo)
