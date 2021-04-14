@@ -3,12 +3,7 @@ package main
 import (
 	"context"
 	"net/http"
-	"strconv"
 
-	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/99designs/gqlgen/graphql/handler/transport"
-	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/gorilla/websocket"
 	"github.com/kelseyhightower/envconfig"
@@ -18,6 +13,7 @@ import (
 	"github.com/orsenkucher/cocopuff/graphql/gql"
 	"github.com/orsenkucher/cocopuff/graphql/log"
 	"github.com/orsenkucher/cocopuff/graphql/resolver"
+	"github.com/orsenkucher/cocopuff/pub/gs"
 	_ "go.uber.org/automaxprocs"
 	"go.uber.org/zap"
 )
@@ -54,11 +50,20 @@ func main() {
 	}()
 
 	ctx := ctx(sugar, spec)
-	_ = ctx // TODO:
+	if err := run(ctx, sugar, spec); err != nil {
+		sugar.Fatal(zap.Error(err)) // how about zapperr, erreur analog?
+	}
+}
 
-	// TODO: move to run()
-	// how about error logging in run?
-	router := router(spec)
+func ctx(sugar *zap.SugaredLogger, spec specification) context.Context {
+	ctx := gs.With(context.Background())
+	ctx = env.With(ctx, sugar, service, spec.Deployment, spec.Version, spec.Release)
+	return ctx
+}
+
+func run(ctx context.Context, sugar *zap.SugaredLogger, spec specification) error {
+	cors := corsMiddleware(spec)
+	upgrader := websocketUpgrader()
 
 	client, err := graphql.NewClient(sugar, spec.AccountURL)
 	if err != nil {
@@ -67,41 +72,19 @@ func main() {
 
 	defer client.Close()
 
-	server := handler.NewDefaultServer(gql.NewExecutableSchema(gql.Config{
+	config := gql.Config{
 		Resolvers: resolver.NewResolver(sugar, client),
-	}))
+	}
 
-	server.AddTransport(&transport.Websocket{
-		Upgrader: websocket.Upgrader{
-			CheckOrigin: func(r *http.Request) bool {
-				return true
-			},
-			ReadBufferSize:  1024,
-			WriteBufferSize: 1024,
-		},
-	})
+	dataloader := dataloader.Middleware(sugar, client)
 
-	router.Use(dataloader.Middleware(sugar, client))
-
-	router.Handle("/graphql", server)
-	router.Handle("/playground", playground.Handler("GraphQL playground", "/graphql"))
-
-	port := strconv.Itoa(spec.Port)
-	sugar.Infof("connect to http://localhost:%s/ for GraphQL playground", port)
-	sugar.Fatal(http.ListenAndServe(":"+port, router))
-	// TODO: http.GracefulStop
-	// TODO: move to server.go
+	middleware := []func(http.Handler) http.Handler{dataloader}
+	server := graphql.NewServer(sugar, config, upgrader, cors, middleware...)
+	return <-server.ListenGraphQL(ctx, spec.Port)
 }
 
-func ctx(sugar *zap.SugaredLogger, spec specification) context.Context {
-	ctx := context.Background()
-	ctx = env.With(ctx, sugar, service, spec.Deployment, spec.Version, spec.Release)
-	return ctx
-}
-
-func router(spec specification) *chi.Mux {
-	router := chi.NewRouter()
-	router.Use(cors.Handler(cors.Options{
+func corsMiddleware(spec specification) func(next http.Handler) http.Handler {
+	return cors.Handler(cors.Options{
 		Debug:            !spec.Release,
 		AllowedOrigins:   []string{"https://*", "http://*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -109,6 +92,15 @@ func router(spec specification) *chi.Mux {
 		ExposedHeaders:   []string{},
 		AllowCredentials: true,
 		MaxAge:           300,
-	}))
-	return router
+	})
+}
+
+func websocketUpgrader() websocket.Upgrader {
+	return websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+	}
 }

@@ -36,7 +36,7 @@ func (r *queryResolver) Accounts(ctx context.Context, pagination *gql.Pagination
 
 	sugar := r.sugar.With(
 		zap.String("package", "resolver"),
-		zap.String("type", "queryResolver"),
+		zap.String("type", fmt.Sprintf("%T", r)),
 		zap.String("method", "Accounts"),
 	)
 
