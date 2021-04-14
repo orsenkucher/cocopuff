@@ -55,11 +55,7 @@ func main() {
 
 func ctx(spec specification) context.Context {
 	ctx := gs.With(context.Background())
-	ctx = context.WithValue(ctx, env.Service, service)
-	ctx = context.WithValue(ctx, env.Version, spec.Version)
-	ctx = context.WithValue(ctx, env.Release, spec.Release)
-	ctx = context.WithValue(ctx, env.Deployment, spec.Deployment)
-	ctx = context.WithValue(ctx, env.Tags, []string{spec.Deployment, spec.Version})
+	ctx = env.With(ctx, service, spec.Deployment, spec.Version, spec.Release)
 	return ctx
 }
 
