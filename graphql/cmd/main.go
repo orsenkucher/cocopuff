@@ -53,7 +53,7 @@ func main() {
 		}
 	}()
 
-	ctx := ctx(spec)
+	ctx := ctx(sugar, spec)
 	_ = ctx // TODO:
 
 	// TODO: move to run()
@@ -93,9 +93,9 @@ func main() {
 	// TODO: move to server.go
 }
 
-func ctx(spec specification) context.Context {
+func ctx(sugar *zap.SugaredLogger, spec specification) context.Context {
 	ctx := context.Background()
-	ctx = env.With(ctx, service, spec.Deployment, spec.Version, spec.Release)
+	ctx = env.With(ctx, sugar, service, spec.Deployment, spec.Version, spec.Release)
 	return ctx
 }
 

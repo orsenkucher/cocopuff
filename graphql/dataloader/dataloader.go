@@ -16,8 +16,8 @@ import (
 type ctxKey int
 
 const (
-	dataloaderCtx ctxKey = iota
-	sugarCtx
+	sugarCtx ctxKey = iota
+	dataloaderCtx
 )
 
 type Dataloader struct {
