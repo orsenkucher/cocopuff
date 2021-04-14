@@ -5,8 +5,12 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/apollotracing"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
+	"github.com/99designs/gqlgen/graphql/handler/lru"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/websocket"
@@ -27,8 +31,19 @@ func NewServer(
 	cors func(http.Handler) http.Handler,
 	middleware ...func(http.Handler) http.Handler,
 ) *GraphQLServer {
-	server := handler.NewDefaultServer(gql.NewExecutableSchema(config))
-	server.AddTransport(&transport.Websocket{Upgrader: upgrader})
+	server := handler.New(gql.NewExecutableSchema(config))
+	server.AddTransport(transport.Websocket{
+		Upgrader:              upgrader,
+		KeepAlivePingInterval: 10 * time.Second,
+	})
+	server.AddTransport(transport.Options{})
+	server.AddTransport(transport.GET{})
+	server.AddTransport(transport.POST{})
+	server.AddTransport(transport.MultipartForm{})
+	server.SetQueryCache(lru.New(4096))
+	server.Use(extension.Introspection{})
+	server.Use(extension.AutomaticPersistedQuery{Cache: lru.New(1024)})
+	server.Use(apollotracing.Tracer{})
 
 	router := chi.NewRouter()
 	router.Use(cors)
