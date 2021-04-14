@@ -9,6 +9,7 @@ import (
 	"github.com/orsenkucher/cocopuff/account"
 	"github.com/orsenkucher/cocopuff/account/env"
 	"github.com/orsenkucher/cocopuff/account/log"
+	"github.com/orsenkucher/cocopuff/pub/care"
 	"github.com/orsenkucher/cocopuff/pub/gs"
 	_ "go.uber.org/automaxprocs"
 	"go.uber.org/zap"
@@ -49,7 +50,7 @@ func main() {
 
 	ctx := ctx(sugar, spec)
 	if err := run(ctx, sugar, spec); err != nil {
-		sugar.Fatal(zap.Error(err))
+		sugar.Fatal(care.ToZap(err))
 	}
 }
 
@@ -62,7 +63,7 @@ func ctx(sugar *zap.SugaredLogger, spec specification) context.Context {
 func run(ctx context.Context, sugar *zap.SugaredLogger, spec specification) error {
 	repo, err := account.NewAccountRepository(spec.DSN)
 	if err != nil {
-		return err // fail to dial database
+		return care.Of(err, "fail to dial database", zap.String("function", "run"))
 	}
 
 	service := account.NewAccountService(repo)

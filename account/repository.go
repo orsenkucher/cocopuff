@@ -3,6 +3,8 @@ package account
 import (
 	"context"
 
+	"github.com/orsenkucher/cocopuff/pub/care"
+	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -18,14 +20,15 @@ type accountRepository struct {
 }
 
 func NewAccountRepository(dsn string) (*accountRepository, error) {
+	care := care.With(zap.String("function", "NewAccountRepository"))
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		return nil, err
+		return nil, care.Of(err, "fail gorm.Open")
 	}
 
 	err = db.AutoMigrate(&Account{})
 	if err != nil {
-		return nil, err
+		return nil, care.Of(err, "fail db.AutoMigrate")
 	}
 
 	return &accountRepository{db}, nil

@@ -75,10 +75,10 @@ func withFields(err error, fields ...zap.Field) error {
 }
 
 func ToZap(err error) zap.Field {
-	return ToNamedZap("error", err)
+	return toNamedZap("error", err)
 }
 
-func ToNamedZap(key string, err error) zap.Field {
+func toNamedZap(key string, err error) zap.Field {
 	if err == nil {
 		return zap.Skip()
 	}
@@ -117,4 +117,24 @@ func (e zapcare) Format(s fmt.State, verb rune) {
 	case 's', 'q':
 		fmt.Fprint(s, e.Error())
 	}
+}
+
+type Wrapper struct {
+	fields []zap.Field
+}
+
+func (w Wrapper) New(message string, fields ...zap.Field) error {
+	return New(message, append(fields, w.fields...)...)
+}
+
+func (w Wrapper) Of(err error, message string, fields ...zap.Field) error {
+	return Of(err, message, append(fields, w.fields...)...)
+}
+
+func With(fields ...zap.Field) Wrapper {
+	return Wrapper{fields: fields}
+}
+
+func (w Wrapper) With(fields ...zap.Field) Wrapper {
+	return Wrapper{fields: append(w.fields, fields...)}
 }
