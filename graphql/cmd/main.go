@@ -53,11 +53,53 @@ func main() {
 		}
 	}()
 
-	ctx := ctx(spec)
+	ctx := ctx(sugar, spec)
 	_ = ctx // TODO:
 
 	// TODO: move to run()
 	// how about error logging in run?
+	router := router(spec)
+
+	client, err := graphql.NewClient(sugar, spec.AccountURL)
+	if err != nil {
+		sugar.Fatal("fail to dial:", zap.Error(err))
+	}
+
+	defer client.Close()
+
+	server := handler.NewDefaultServer(gql.NewExecutableSchema(gql.Config{
+		Resolvers: resolver.NewResolver(sugar, client),
+	}))
+
+	server.AddTransport(&transport.Websocket{
+		Upgrader: websocket.Upgrader{
+			CheckOrigin: func(r *http.Request) bool {
+				return true
+			},
+			ReadBufferSize:  1024,
+			WriteBufferSize: 1024,
+		},
+	})
+
+	router.Use(dataloader.Middleware(sugar, client))
+
+	router.Handle("/graphql", server)
+	router.Handle("/playground", playground.Handler("GraphQL playground", "/graphql"))
+
+	port := strconv.Itoa(spec.Port)
+	sugar.Infof("connect to http://localhost:%s/ for GraphQL playground", port)
+	sugar.Fatal(http.ListenAndServe(":"+port, router))
+	// TODO: http.GracefulStop
+	// TODO: move to server.go
+}
+
+func ctx(sugar *zap.SugaredLogger, spec specification) context.Context {
+	ctx := context.Background()
+	ctx = env.With(ctx, sugar, service, spec.Deployment, spec.Version, spec.Release)
+	return ctx
+}
+
+func router(spec specification) *chi.Mux {
 	router := chi.NewRouter()
 	router.Use(cors.Handler(cors.Options{
 		Debug:            !spec.Release,
@@ -68,44 +110,5 @@ func main() {
 		AllowCredentials: true,
 		MaxAge:           300,
 	}))
-
-	client, err := graphql.NewClient(sugar, spec.AccountURL)
-	if err != nil {
-		sugar.Fatal("fail to dial:", zap.Error(err))
-	}
-
-	defer client.Close()
-
-	srv := handler.NewDefaultServer(gql.NewExecutableSchema(gql.Config{
-		Resolvers: resolver.NewResolver(sugar, client),
-	}))
-
-	srv.AddTransport(&transport.Websocket{
-		Upgrader: websocket.Upgrader{
-			CheckOrigin: func(r *http.Request) bool {
-				return true
-			},
-			ReadBufferSize:  1024,
-			WriteBufferSize: 1024,
-		},
-	})
-
-	router.Handle("/graphql", dataloader.Middleware(srv, client))
-	router.Handle("/playground", playground.Handler("GraphQL playground", "/graphql"))
-
-	port := strconv.Itoa(spec.Port)
-	sugar.Infof("connect to http://localhost:%s/ for GraphQL playground", port)
-	sugar.Fatal(http.ListenAndServe(":"+port, router))
-	// TODO: http.GracefulStop
-	// TODO: move to server.go
-}
-
-func ctx(spec specification) context.Context {
-	ctx := context.Background()
-	ctx = context.WithValue(ctx, env.Service, service)
-	ctx = context.WithValue(ctx, env.Version, spec.Version)
-	ctx = context.WithValue(ctx, env.Release, spec.Release)
-	ctx = context.WithValue(ctx, env.Deployment, spec.Deployment)
-	ctx = context.WithValue(ctx, env.Tags, []string{spec.Deployment, spec.Version})
-	return ctx
+	return router
 }
