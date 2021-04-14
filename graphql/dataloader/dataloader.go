@@ -9,8 +9,15 @@ import (
 	"time"
 
 	"github.com/orsenkucher/cocopuff/graphql"
-	"github.com/orsenkucher/cocopuff/graphql/env"
 	"github.com/orsenkucher/cocopuff/graphql/pb"
+	"go.uber.org/zap"
+)
+
+type ctxKey int
+
+const (
+	sugarCtx ctxKey = iota
+	dataloaderCtx
 )
 
 type Dataloader struct {
@@ -18,19 +25,40 @@ type Dataloader struct {
 	AccountPaginated *AccountPaginatedLoader
 }
 
-func Middleware(next http.Handler, client *graphql.Client) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.WithValue(r.Context(), env.Dataloader, &Dataloader{
-			AccountById:      NewAccountLoader(NewAccountLoaderConfig(r.Context(), client)),
-			AccountPaginated: NewAccountPaginatedLoader(NewAccountPaginatedLoaderConfig(r.Context(), client)),
+func Middleware(sugar *zap.SugaredLogger, client *graphql.Client) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+			ctx = withSugar(ctx, sugar)
+			ctx = withDataloader(ctx, &Dataloader{
+				AccountById:      NewAccountLoader(NewAccountLoaderConfig(r.Context(), client)),
+				AccountPaginated: NewAccountPaginatedLoader(NewAccountPaginatedLoaderConfig(r.Context(), client)),
+			})
+			r = r.WithContext(ctx)
+			next.ServeHTTP(w, r)
 		})
-		r = r.WithContext(ctx)
-		next.ServeHTTP(w, r)
-	})
+	}
+}
+
+func withSugar(ctx context.Context, sugar *zap.SugaredLogger) context.Context {
+	sugar = sugar.With(zap.String("package", "dataloader"))
+	return context.WithValue(ctx, sugarCtx, sugar)
+}
+
+func withDataloader(ctx context.Context, dataloader *Dataloader) context.Context {
+	return context.WithValue(ctx, dataloaderCtx, dataloader)
 }
 
 func For(ctx context.Context) *Dataloader {
-	return ctx.Value(env.Dataloader).(*Dataloader)
+	if dl, ok := ctx.Value(dataloaderCtx).(*Dataloader); ok {
+		return dl
+	}
+
+	if sugar, ok := ctx.Value(sugarCtx).(*zap.SugaredLogger); ok {
+		sugar.DPanic("fail to retrieve dataloader")
+	}
+
+	return nil
 }
 
 func NewAccountLoaderConfig(ctx context.Context, client *graphql.Client) AccountLoaderConfig {

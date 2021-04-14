@@ -6,7 +6,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func New(service, dep, ver string, release bool) (*zap.SugaredLogger, error) {
+func New(service, deployment, version string, release bool) (*zap.SugaredLogger, error) {
 	var (
 		err    error
 		logger *zap.Logger
@@ -24,8 +24,8 @@ func New(service, dep, ver string, release bool) (*zap.SugaredLogger, error) {
 
 	logger = logger.With(
 		zap.String("service", service),
-		zap.String("dep", string(dep)),
-		zap.String("ver", ver),
+		zap.String("dep", string(deployment)),
+		zap.String("ver", version),
 	)
 
 	return logger.Sugar(), nil
