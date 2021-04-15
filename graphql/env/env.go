@@ -35,7 +35,7 @@ func TagsFor(ctx context.Context) []string {
 	}
 
 	if sugar, ok := ctx.Value(sugarCtx).(*zap.SugaredLogger); ok {
-		sugar.DPanic("fail to retrieve tags", zap.String("function", "TagsFor"))
+		sugar.DPanicw("fail to retrieve tags", zap.String("function", "TagsFor"))
 	}
 
 	return nil
@@ -47,7 +47,7 @@ func ServiceFor(ctx context.Context) string {
 	}
 
 	if sugar, ok := ctx.Value(sugarCtx).(*zap.SugaredLogger); ok {
-		sugar.DPanic("fail to retrieve service", zap.String("function", "ServiceFor"))
+		sugar.DPanicw("fail to retrieve service", zap.String("function", "ServiceFor"))
 	}
 
 	return ""
@@ -59,7 +59,7 @@ func DeploymentFor(ctx context.Context) string {
 	}
 
 	if sugar, ok := ctx.Value(sugarCtx).(*zap.SugaredLogger); ok {
-		sugar.DPanic("fail to retrieve deployment", zap.String("function", "DeploymentFor"))
+		sugar.DPanicw("fail to retrieve deployment", zap.String("function", "DeploymentFor"))
 	}
 
 	return ""
@@ -71,7 +71,7 @@ func VersionFor(ctx context.Context) string {
 	}
 
 	if sugar, ok := ctx.Value(sugarCtx).(*zap.SugaredLogger); ok {
-		sugar.DPanic("fail to retrieve version", zap.String("function", "VersionFor"))
+		sugar.DPanicw("fail to retrieve version", zap.String("function", "VersionFor"))
 	}
 
 	return ""
@@ -83,7 +83,7 @@ func ReleaseFor(ctx context.Context) bool {
 	}
 
 	if sugar, ok := ctx.Value(sugarCtx).(*zap.SugaredLogger); ok {
-		sugar.DPanic("fail to retrieve release", zap.String("function", "ReleaseFor"))
+		sugar.DPanicw("fail to retrieve release", zap.String("function", "ReleaseFor"))
 	}
 
 	return true

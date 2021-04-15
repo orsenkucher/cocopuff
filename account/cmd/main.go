@@ -44,13 +44,13 @@ func main() {
 
 	defer func() {
 		if r := recover(); r != nil {
-			sugar.Error("recovered error", zap.Any("description", r))
+			sugar.Errorw("recovered error", zap.Any("description", r))
 		}
 	}()
 
 	ctx := ctx(sugar, spec)
 	if err := run(ctx, sugar, spec); err != nil {
-		sugar.Fatal(care.ToZap(err))
+		sugar.Fatalw("run failed", care.ToZap(err))
 	}
 }
 

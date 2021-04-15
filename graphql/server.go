@@ -62,16 +62,16 @@ func (s *GraphQLServer) ListenGraphQL(ctx context.Context, port int) <-chan erro
 			Handler: s.router,
 		}
 
-		s.sugar.Info("start graphql server",
+		s.sugar.Infow("start graphql server",
 			zap.String("address", fmt.Sprintf(":%s/graphql", p)),
 			zap.String("playground", fmt.Sprintf(":%s/playground", p)),
 		)
 		select {
 		case err := <-ec.Go(listen(server)):
-			s.sugar.Info("shutdown graphql server", zap.String("by", "error"), zap.Error(err))
+			s.sugar.Warnw("shutdown graphql server", zap.String("by", "error"), zap.Error(err))
 			return server.Shutdown(ctx)
 		case <-ctx.Done():
-			s.sugar.Info("shutdown graphql server", zap.String("by", "context.Done"))
+			s.sugar.Warnw("shutdown graphql server", zap.String("by", "context.Done"))
 			return server.Shutdown(ctx)
 		}
 	})

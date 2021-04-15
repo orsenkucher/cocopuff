@@ -44,7 +44,7 @@ func (r *queryResolver) Accounts(ctx context.Context, pagination *gql.Pagination
 	if id != nil {
 		a, err := dataloader.For(ctx).AccountById.Load(*id)
 		if err != nil {
-			sugar.Error("failed get by id:", zap.Error(err))
+			sugar.Errorw("failed get by id:", zap.Error(err))
 			return nil, err
 		}
 		return []*gql.Account{{
@@ -66,7 +66,7 @@ func (r *queryResolver) Accounts(ctx context.Context, pagination *gql.Pagination
 		Skip: skip, Take: take,
 	})
 	if err != nil {
-		sugar.Error("failed to list:", zap.Error(err))
+		sugar.Errorw("failed to list:", zap.Error(err))
 		return nil, err
 	}
 
