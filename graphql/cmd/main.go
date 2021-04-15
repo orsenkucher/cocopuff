@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -79,6 +80,17 @@ func run(ctx context.Context, sugar *zap.SugaredLogger, spec specification) erro
 
 	config := gql.Config{
 		Resolvers: resolver.NewResolver(sugar, client),
+		Directives: gql.DirectiveRoot{
+			HasRole: func(ctx context.Context, obj interface{}, next graphql.Resolver, role Role) (interface{}, error) {
+				if !getCurrentUser(ctx).HasRole(role) {
+					// block calling the next resolver
+					return nil, fmt.Errorf("Access denied")
+				}
+
+				// or let it pass through
+				return next(ctx)
+			},
+		},
 	}
 
 	tokenAuth := jwtauth.New("HS256", []byte(spec.JWTSignKey), nil)
