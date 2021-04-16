@@ -12,8 +12,11 @@ import (
 type AccountRepository interface {
 	CreateAccount(ctx context.Context, a Account) error
 	GetAccountByID(ctx context.Context, id string) (*Account, error)
+	GetAccounts(ctx context.Context, ids []string) ([]Account, error)
 	ListAccounts(ctx context.Context, skip uint64, take uint64) ([]Account, error)
 }
+
+var _ AccountRepository = (*accountRepository)(nil)
 
 type accountRepository struct {
 	db *gorm.DB
@@ -35,14 +38,19 @@ func NewAccountRepository(dsn string) (*accountRepository, error) {
 }
 
 func (r *accountRepository) CreateAccount(ctx context.Context, a Account) error {
-	r.db.Create(&a)
-	return nil
+	return r.db.Create(&a).Error
 }
 
 func (r *accountRepository) GetAccountByID(ctx context.Context, id string) (*Account, error) {
 	var a *Account
-	r.db.First(a, id)
-	return a, nil
+	tx := r.db.First(a, id)
+	return a, tx.Error
+}
+
+func (r *accountRepository) GetAccounts(ctx context.Context, ids []string) ([]Account, error) {
+	var accounts []Account
+	tx := r.db.Find(&accounts, ids)
+	return accounts, tx.Error
 }
 
 func (r *accountRepository) ListAccounts(ctx context.Context, skip uint64, take uint64) ([]Account, error) {
