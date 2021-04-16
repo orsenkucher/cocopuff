@@ -5,11 +5,13 @@ package dataloader
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/orsenkucher/cocopuff/graphql"
 	"github.com/orsenkucher/cocopuff/graphql/pb"
+	"github.com/orsenkucher/cocopuff/pub/care"
 	"go.uber.org/zap"
 )
 
@@ -31,8 +33,8 @@ func Middleware(sugar *zap.SugaredLogger, client *graphql.Client) func(http.Hand
 			ctx := r.Context()
 			ctx = withSugar(ctx, sugar)
 			ctx = withDataloader(ctx, &Dataloader{
-				AccountById:      NewAccountLoader(NewAccountLoaderConfig(r.Context(), client)),
-				AccountPaginated: NewAccountPaginatedLoader(NewAccountPaginatedLoaderConfig(r.Context(), client)),
+				AccountById:      NewAccountLoader(NewAccountLoaderConfig(r.Context(), sugar, client)),
+				AccountPaginated: NewAccountPaginatedLoader(NewAccountPaginatedLoaderConfig(r.Context(), sugar, client)),
 			})
 			r = r.WithContext(ctx)
 			next.ServeHTTP(w, r)
@@ -61,24 +63,29 @@ func For(ctx context.Context) *Dataloader {
 	return nil
 }
 
-func NewAccountLoaderConfig(ctx context.Context, client *graphql.Client) AccountLoaderConfig {
+func NewAccountLoaderConfig(ctx context.Context, sugar *zap.SugaredLogger, client *graphql.Client) AccountLoaderConfig {
 	return AccountLoaderConfig{
 		MaxBatch: 100,
 		Wait:     1 * time.Millisecond,
 		Fetch: func(ids []string) ([]*graphql.Account, []error) {
-			// TODO: GetAccounts()
-			res, err := client.ListAccounts(ctx, 0, 0)
+			w := care.With(zap.String("dataloader", fmt.Sprintf("%T", AccountLoaderConfig{})))
+			res, err := client.GetAccounts(ctx, ids)
 			if err != nil {
 				// single error for everything
-				return nil, []error{err}
+				return nil, []error{w.Of(err, "fail to get accounts", zap.String("by", "ids"))}
 			}
 
+			sugar.With(w.Fields).Infof("got %v accounts", len(res))
 			return res, nil
 		},
 	}
 }
 
-func NewAccountPaginatedLoaderConfig(ctx context.Context, client *graphql.Client) AccountPaginatedLoaderConfig {
+func NewAccountPaginatedLoaderConfig(
+	ctx context.Context,
+	sugar *zap.SugaredLogger,
+	client *graphql.Client,
+) AccountPaginatedLoaderConfig {
 	return AccountPaginatedLoaderConfig{
 		MaxBatch: 10,
 		Wait:     1 * time.Millisecond,
