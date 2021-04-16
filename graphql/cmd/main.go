@@ -3,12 +3,15 @@ package main
 import (
 	"context"
 	"net/http"
+	"time"
 
+	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/gorilla/websocket"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/orsenkucher/cocopuff/graphql"
+	"github.com/orsenkucher/cocopuff/graphql/auth"
 	"github.com/orsenkucher/cocopuff/graphql/dataloader"
 	"github.com/orsenkucher/cocopuff/graphql/env"
 	"github.com/orsenkucher/cocopuff/graphql/gql"
@@ -65,8 +68,6 @@ func ctx(sugar *zap.SugaredLogger, spec specification) context.Context {
 
 func run(ctx context.Context, sugar *zap.SugaredLogger, spec specification) error {
 	cors := corsMiddleware(spec)
-	upgrader := websocketUpgrader()
-
 	client, err := graphql.NewClient(sugar, spec.AccountURL)
 	if err != nil {
 		return care.Of(err, "fail to dial grpc client", zap.String("function", "run"))
@@ -78,15 +79,22 @@ func run(ctx context.Context, sugar *zap.SugaredLogger, spec specification) erro
 		Resolvers: resolver.NewResolver(sugar, client),
 	}
 
-	dataloader := dataloader.Middleware(sugar, client)
+	upgrader := websocketUpgrader()
+	init := auth.WebsocketMiddleware(sugar, client)
+	socket := transport.Websocket{
+		InitFunc:              init,
+		Upgrader:              upgrader,
+		KeepAlivePingInterval: 10 * time.Second,
+	}
 	middleware := []func(http.Handler) http.Handler{
 		middleware.RequestID,
 		log.Middleware(sugar.Desugar()),
 		middleware.Recoverer,
 		middleware.Compress(5),
-		dataloader,
+		auth.Middleware(sugar, client),
+		dataloader.Middleware(sugar, client),
 	}
-	server := graphql.NewServer(sugar, config, upgrader, cors, middleware...)
+	server := graphql.NewServer(sugar, config, socket, cors, middleware...)
 	return <-server.ListenGraphQL(ctx, spec.Port)
 }
 
