@@ -120,21 +120,21 @@ func (e zapcare) Format(s fmt.State, verb rune) {
 }
 
 type Wrapper struct {
-	fields []zap.Field
+	Fields []zap.Field
 }
 
 func (w Wrapper) New(message string, fields ...zap.Field) error {
-	return New(message, append(fields, w.fields...)...)
+	return New(message, append(fields, w.Fields...)...)
 }
 
 func (w Wrapper) Of(err error, message string, fields ...zap.Field) error {
-	return Of(err, message, append(fields, w.fields...)...)
+	return Of(err, message, append(fields, w.Fields...)...)
 }
 
 func With(fields ...zap.Field) Wrapper {
-	return Wrapper{fields: fields}
+	return Wrapper{Fields: fields}
 }
 
 func (w Wrapper) With(fields ...zap.Field) Wrapper {
-	return Wrapper{fields: append(w.fields, fields...)}
+	return Wrapper{Fields: append(w.Fields, fields...)}
 }
