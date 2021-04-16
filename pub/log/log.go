@@ -1,6 +1,7 @@
 package log
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -9,15 +10,38 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+type ctxKey int
+
+const (
+	logCtx ctxKey = iota
+)
+
 func Middleware(l *zap.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
-			reqID := middleware.GetReqID(r.Context())
+			ctx := r.Context()
+			reqID := middleware.GetReqID(ctx)
 			scheme := "http"
 			if r.TLS != nil {
 				scheme = "https"
 			}
+
+			var fields []zapcore.Field
+			if reqID != "" {
+				fields = append(fields, zap.String("reqID", reqID))
+			}
+
+			fields = append(fields,
+				zap.String("path", r.URL.Path),
+				zap.String("from", r.RemoteAddr),
+				zap.String("proto", r.Proto),
+				zap.String("uri", r.RequestURI),
+				zap.String("host", r.Host),
+				zap.String("scheme", scheme),
+				zap.String("method", r.Method),
+			)
+			l = l.With(fields...)
 
 			ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
 
@@ -28,23 +52,19 @@ func Middleware(l *zap.Logger) func(next http.Handler) http.Handler {
 					zap.Int64("ns", latency.Nanoseconds()),
 					zap.Int("status", ww.Status()),
 					zap.Int("size", ww.BytesWritten()),
-					zap.String("path", r.URL.Path),
-					zap.String("from", r.RemoteAddr),
-					zap.String("proto", r.Proto),
-					zap.String("uri", r.RequestURI),
-					zap.String("host", r.Host),
-					zap.String("scheme", scheme),
-					zap.String("method", r.Method),
-				}
-				if reqID != "" {
-					fields = append(fields, zap.String("reqID", reqID))
 				}
 
 				l.Info("request completed", fields...)
 			}()
 
+			ctx = context.WithValue(ctx, logCtx, l)
+			r = r.WithContext(ctx)
 			next.ServeHTTP(ww, r)
 		}
 		return http.HandlerFunc(fn)
 	}
+}
+
+func For(ctx context.Context) *zap.Logger {
+	return ctx.Value(logCtx).(*zap.Logger)
 }
