@@ -11,7 +11,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/orsenkucher/cocopuff/graphql"
-	"github.com/orsenkucher/cocopuff/graphql/auth"
+	"github.com/orsenkucher/cocopuff/graphql/authentication"
 	"github.com/orsenkucher/cocopuff/graphql/dataloader"
 	"github.com/orsenkucher/cocopuff/graphql/env"
 	"github.com/orsenkucher/cocopuff/graphql/gql"
@@ -79,11 +79,9 @@ func run(ctx context.Context, sugar *zap.SugaredLogger, spec specification) erro
 		Resolvers: resolver.NewResolver(sugar, client),
 	}
 
-	upgrader := websocketUpgrader()
-	init := auth.WebsocketMiddleware(sugar, client)
 	socket := transport.Websocket{
-		InitFunc:              init,
-		Upgrader:              upgrader,
+		InitFunc:              authentication.WebsocketMiddleware(sugar, client),
+		Upgrader:              websocketUpgrader(),
 		KeepAlivePingInterval: 10 * time.Second,
 	}
 	middleware := []func(http.Handler) http.Handler{
@@ -91,7 +89,7 @@ func run(ctx context.Context, sugar *zap.SugaredLogger, spec specification) erro
 		log.Middleware(sugar.Desugar()),
 		middleware.Recoverer,
 		middleware.Compress(5),
-		auth.Middleware(sugar, client),
+		authentication.Middleware(sugar, client),
 		dataloader.Middleware(sugar, client),
 	}
 	server := graphql.NewServer(sugar, config, socket, cors, middleware...)
