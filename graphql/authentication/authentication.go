@@ -7,6 +7,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/orsenkucher/cocopuff/graphql"
+	"github.com/orsenkucher/cocopuff/pub/log"
 	"go.uber.org/zap"
 )
 
@@ -20,9 +21,16 @@ const (
 func Middleware(sugar *zap.SugaredLogger, client *graphql.Client) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
-			reqID := middleware.GetReqID(r.Context())
-			sugar = sugar.With(zap.String("reqID", reqID), zap.String("package", "authentication"), zap.String("protocol", "http"))
-			ctx := context.WithValue(r.Context(), sugarCtx, sugar)
+			ctx := r.Context()
+			reqID := middleware.GetReqID(ctx)
+			if log, ok := log.For(ctx); ok {
+				sugar = log.Sugar()
+			}
+
+			sugar := sugar.With(
+				zap.String("reqID", reqID), zap.String("package", "authentication"), zap.String("protocol", "http"),
+			)
+			ctx = context.WithValue(ctx, sugarCtx, sugar)
 
 			c, err := r.Cookie("auth-cookie")
 			if err != nil || c == nil {
