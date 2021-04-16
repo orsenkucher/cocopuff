@@ -70,6 +70,26 @@ func (c *Client) GetAccount(ctx context.Context, id string) (*Account, error) {
 	}, nil
 }
 
+func (c *Client) GetAccounts(ctx context.Context, ids []string) ([]*Account, error) {
+	r, err := c.service.GetAccounts(
+		ctx,
+		&pb.GetAccountsRequest{Ids: ids},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	accounts := []*Account{}
+	for _, a := range r.Accounts {
+		accounts = append(accounts, &Account{
+			ID:   a.Id,
+			Name: a.Name,
+		})
+	}
+
+	return accounts, nil
+}
+
 func (c *Client) ListAccounts(ctx context.Context, skip uint64, take uint64) ([]*Account, error) {
 	r, err := c.service.ListAccounts(
 		ctx,
