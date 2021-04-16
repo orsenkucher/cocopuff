@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/99designs/gqlgen/graphql/handler/transport"
-	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/orsenkucher/cocopuff/graphql"
 	"go.uber.org/zap"
 )
