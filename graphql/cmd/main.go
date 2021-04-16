@@ -8,6 +8,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/go-chi/jwtauth/v5"
 	"github.com/gorilla/websocket"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/orsenkucher/cocopuff/graphql"
@@ -28,6 +29,7 @@ const service = "graphql"
 type specification struct {
 	Port       int    `default:"9100"`
 	AccountURL string `envconfig:"ACCOUNT_SERVICE_URL"`
+	JWTSignKey string `envconfig:"JWT_SIGN_KEY" default:"secret"`
 
 	Release    bool
 	Version    string `default:"v0.0.0"`
@@ -79,8 +81,10 @@ func run(ctx context.Context, sugar *zap.SugaredLogger, spec specification) erro
 		Resolvers: resolver.NewResolver(sugar, client),
 	}
 
+	tokenAuth := jwtauth.New("HS256", []byte(spec.JWTSignKey), nil)
+	initFn := authentication.WebsocketMiddleware(sugar, tokenAuth, client)
 	socket := transport.Websocket{
-		InitFunc:              authentication.WebsocketMiddleware(sugar, client),
+		InitFunc:              initFn,
 		Upgrader:              websocketUpgrader(),
 		KeepAlivePingInterval: 10 * time.Second,
 	}
@@ -89,6 +93,7 @@ func run(ctx context.Context, sugar *zap.SugaredLogger, spec specification) erro
 		log.Middleware(sugar.Desugar()),
 		middleware.Recoverer,
 		middleware.Compress(5),
+		authentication.Verifier(tokenAuth),
 		authentication.Middleware(sugar, client),
 		dataloader.Middleware(sugar, client),
 	}

@@ -2,9 +2,12 @@ package authentication
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"github.com/99designs/gqlgen/graphql/handler/transport"
+	"github.com/go-chi/jwtauth/v5"
+	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/orsenkucher/cocopuff/graphql"
 	"github.com/orsenkucher/cocopuff/pub/log"
 	"go.uber.org/zap"
@@ -28,21 +31,32 @@ func Middleware(sugar *zap.SugaredLogger, client *graphql.Client) func(http.Hand
 			sugar := sugar.With(zap.String("package", "authentication"), zap.String("protocol", "http"))
 			ctx = context.WithValue(ctx, sugarCtx, sugar)
 
-			c, err := r.Cookie("auth-cookie")
-			if err != nil || c == nil {
+			token, claims, err := jwtauth.FromContext(ctx)
+
+			if err != nil || token == nil {
 				sugar.Info("serving with no token")
 				next.ServeHTTP(w, r)
 				return
 			}
 
-			id, err := validateAndGetAccountID(c)
-			if err != nil {
+			if err := jwt.Validate(token); err != nil {
 				sugar.Infow("invalid token", zap.Error(err))
 				http.Error(w, "invalid token", http.StatusForbidden)
 				return
 			}
 
-			account, err := client.GetAccount(ctx, id)
+			id, ok := claims["user_id"]
+			if ok {
+				_, ok = id.(string)
+			}
+
+			if !ok {
+				sugar.Infow("claims no user id", zap.Error(err))
+				http.Error(w, "claims no user id", http.StatusForbidden)
+				return
+			}
+
+			account, err := client.GetAccount(ctx, id.(string))
 			if err != nil {
 				sugar.Warnw("no account found", zap.Error(err))
 				http.Error(w, "no account", http.StatusForbidden)
@@ -58,17 +72,34 @@ func Middleware(sugar *zap.SugaredLogger, client *graphql.Client) func(http.Hand
 	}
 }
 
-func WebsocketMiddleware(sugar *zap.SugaredLogger, client *graphql.Client) transport.WebsocketInitFunc {
+func WebsocketMiddleware(sugar *zap.SugaredLogger, ja *jwtauth.JWTAuth, client *graphql.Client) transport.WebsocketInitFunc {
 	fn := func(ctx context.Context, initPayload transport.InitPayload) (context.Context, error) {
 		sugar = sugar.With(zap.String("package", "authentication"), zap.String("protocol", "ws"))
 		ctx = context.WithValue(ctx, sugarCtx, sugar)
-		id, err := validateAndGetAccountIDString(initPayload.GetString("token"))
+		token, claims, err := getClaims(jwtauth.VerifyToken(ja, initPayload.GetString("token")))
+
 		if err != nil {
 			sugar.Warnw("invalid token payload", zap.Error(err))
 			return nil, err
 		}
 
-		account, err := client.GetAccount(ctx, id)
+		if err := jwt.Validate(token); err != nil {
+			sugar.Warnw("invalid token", zap.Error(err))
+			return nil, err
+		}
+
+		id, ok := claims["user_id"]
+		if ok {
+			_, ok = id.(string)
+		}
+
+		if !ok {
+			err := errors.New("claims no user id")
+			sugar.Warn(err)
+			return nil, err
+		}
+
+		account, err := client.GetAccount(ctx, id.(string))
 		if err != nil {
 			sugar.Warnw("no account found", zap.Error(err))
 			return nil, err
@@ -81,6 +112,21 @@ func WebsocketMiddleware(sugar *zap.SugaredLogger, client *graphql.Client) trans
 	return transport.WebsocketInitFunc(fn)
 }
 
+func getClaims(token jwt.Token, err error) (jwt.Token, map[string]interface{}, error) {
+	var claims map[string]interface{}
+
+	if token != nil {
+		claims, err = token.AsMap(context.Background())
+		if err != nil {
+			return token, nil, err
+		}
+	} else {
+		claims = map[string]interface{}{}
+	}
+
+	return token, claims, err
+}
+
 func For(ctx context.Context) *graphql.Account {
 	if a, ok := ctx.Value(accountCtx).(*graphql.Account); ok {
 		return a
@@ -91,12 +137,4 @@ func For(ctx context.Context) *graphql.Account {
 	}
 
 	return nil
-}
-
-func validateAndGetAccountID(c *http.Cookie) (string, error) {
-	return "orsen-id", nil
-}
-
-func validateAndGetAccountIDString(token string) (string, error) {
-	return "orsen-id", nil
 }
