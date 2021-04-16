@@ -10,6 +10,9 @@ service AccountService {
 
   rpc GetAccount (GetAccountRequest) returns (Account) {
   }
+  
+  rpc GetAccounts (GetAccountsRequest) returns (GetAccountsResponse){
+  }
 
   rpc ListAccounts (ListAccountsRequest) returns (ListAccountsResponse) {
   }
@@ -26,6 +29,14 @@ message CreateAccountRequest {
 
 message GetAccountRequest {
   string id = 1;
+}
+
+message GetAccountsRequest {
+  repeated string ids = 1;
+}
+
+message GetAccountsResponse {
+  repeated Account accounts = 1;
 }
 
 message ListAccountsRequest {
