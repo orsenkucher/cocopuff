@@ -94,7 +94,7 @@ func run(ctx context.Context, sugar *zap.SugaredLogger, spec specification) erro
 		middleware.Recoverer,
 		middleware.Compress(5),
 		authentication.Verifier(tokenAuth),
-		authentication.Middleware(sugar, client),
+		authentication.Middleware(sugar, tokenAuth, client),
 		dataloader.Middleware(sugar, client),
 	}
 	server := graphql.NewServer(sugar, config, socket, cors, middleware...)

@@ -20,7 +20,7 @@ const (
 	accountCtx
 )
 
-func Middleware(sugar *zap.SugaredLogger, client *graphql.Client) func(http.Handler) http.Handler {
+func Middleware(sugar *zap.SugaredLogger, ja *jwtauth.JWTAuth, client *graphql.Client) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
@@ -45,24 +45,26 @@ func Middleware(sugar *zap.SugaredLogger, client *graphql.Client) func(http.Hand
 				return
 			}
 
-			id, ok := claims["user_id"]
-			if ok {
-				_, ok = id.(string)
-			}
-
+			id, ok := claims["user_id"].(string)
 			if !ok {
 				sugar.Infow("claims no user id", zap.Error(err))
 				http.Error(w, "claims no user id", http.StatusForbidden)
 				return
 			}
 
-			account, err := client.GetAccount(ctx, id.(string))
+			account, err := client.GetAccount(ctx, id)
 			if err != nil {
 				sugar.Warnw("no account found", zap.Error(err))
 				http.Error(w, "no account", http.StatusForbidden)
 				return
 			}
 
+			_, tokenString, _ := ja.Encode(map[string]interface{}{"user_id": id})
+			c := &http.Cookie{
+				Name:  "jwt",
+				Value: tokenString,
+			}
+			http.SetCookie(w, c)
 			sugar.Info("serving authenticated account")
 			ctx = context.WithValue(ctx, accountCtx, account)
 			r = r.WithContext(ctx)
@@ -88,18 +90,14 @@ func WebsocketMiddleware(sugar *zap.SugaredLogger, ja *jwtauth.JWTAuth, client *
 			return nil, err
 		}
 
-		id, ok := claims["user_id"]
-		if ok {
-			_, ok = id.(string)
-		}
-
+		id, ok := claims["user_id"].(string)
 		if !ok {
 			err := errors.New("claims no user id")
 			sugar.Warn(err)
 			return nil, err
 		}
 
-		account, err := client.GetAccount(ctx, id.(string))
+		account, err := client.GetAccount(ctx, id)
 		if err != nil {
 			sugar.Warnw("no account found", zap.Error(err))
 			return nil, err
