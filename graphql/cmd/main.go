@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/gorilla/websocket"
 	"github.com/kelseyhightower/envconfig"
@@ -78,8 +79,13 @@ func run(ctx context.Context, sugar *zap.SugaredLogger, spec specification) erro
 	}
 
 	dataloader := dataloader.Middleware(sugar, client)
-
-	middleware := []func(http.Handler) http.Handler{dataloader}
+	middleware := []func(http.Handler) http.Handler{
+		middleware.RequestID,
+		log.Middleware(sugar.Desugar()),
+		middleware.Recoverer,
+		middleware.Compress(5),
+		dataloader,
+	}
 	server := graphql.NewServer(sugar, config, upgrader, cors, middleware...)
 	return <-server.ListenGraphQL(ctx, spec.Port)
 }
