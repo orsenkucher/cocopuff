@@ -15,6 +15,7 @@
   * **gs**, grace, graceful shutdown
   * **ec**, errch, error channel
   * ew, **care**, error wrapper
+  * **log**, logging middleware
 * graphql
   > This service is an edge gateway. It resolves graphql queries by being a shim to other services via grpc.  
   > Go code is generated with `99designs/gqlgen`.
