@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/99designs/gqlgen/graphql/handler/transport"
-	"github.com/go-chi/chi/v5/middleware"
 	"github.com/orsenkucher/cocopuff/graphql"
 	"github.com/orsenkucher/cocopuff/pub/log"
 	"go.uber.org/zap"
@@ -22,14 +21,11 @@ func Middleware(sugar *zap.SugaredLogger, client *graphql.Client) func(http.Hand
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
-			reqID := middleware.GetReqID(ctx)
 			if log, ok := log.For(ctx); ok {
 				sugar = log.Sugar()
 			}
 
-			sugar := sugar.With(
-				zap.String("reqID", reqID), zap.String("package", "authentication"), zap.String("protocol", "http"),
-			)
+			sugar := sugar.With(zap.String("package", "authentication"), zap.String("protocol", "http"))
 			ctx = context.WithValue(ctx, sugarCtx, sugar)
 
 			c, err := r.Cookie("auth-cookie")
@@ -62,26 +58,6 @@ func Middleware(sugar *zap.SugaredLogger, client *graphql.Client) func(http.Hand
 	}
 }
 
-func validateAndGetAccountID(c *http.Cookie) (string, error) {
-	return "orsen-id", nil
-}
-
-func validateAndGetAccountIDString(token string) (string, error) {
-	return "orsen-id", nil
-}
-
-func For(ctx context.Context) *graphql.Account {
-	if a, ok := ctx.Value(accountCtx).(*graphql.Account); ok {
-		return a
-	}
-
-	if sugar, ok := ctx.Value(sugarCtx).(*zap.SugaredLogger); ok {
-		sugar.DPanicw("fail to retrieve account", zap.String("function", "For"))
-	}
-
-	return nil
-}
-
 func WebsocketMiddleware(sugar *zap.SugaredLogger, client *graphql.Client) transport.WebsocketInitFunc {
 	fn := func(ctx context.Context, initPayload transport.InitPayload) (context.Context, error) {
 		sugar = sugar.With(zap.String("package", "authentication"), zap.String("protocol", "ws"))
@@ -103,4 +79,24 @@ func WebsocketMiddleware(sugar *zap.SugaredLogger, client *graphql.Client) trans
 		return ctx, nil
 	}
 	return transport.WebsocketInitFunc(fn)
+}
+
+func For(ctx context.Context) *graphql.Account {
+	if a, ok := ctx.Value(accountCtx).(*graphql.Account); ok {
+		return a
+	}
+
+	if sugar, ok := ctx.Value(sugarCtx).(*zap.SugaredLogger); ok {
+		sugar.DPanicw("fail to retrieve account", zap.String("function", "For"))
+	}
+
+	return nil
+}
+
+func validateAndGetAccountID(c *http.Cookie) (string, error) {
+	return "orsen-id", nil
+}
+
+func validateAndGetAccountIDString(token string) (string, error) {
+	return "orsen-id", nil
 }
