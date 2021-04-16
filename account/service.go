@@ -9,8 +9,11 @@ import (
 type AccountService interface {
 	CreateAccount(ctx context.Context, name string) (*Account, error)
 	GetAccount(ctx context.Context, id string) (*Account, error)
+	GetAccounts(ctx context.Context, ids []string) ([]Account, error)
 	ListAccounts(ctx context.Context, skip uint64, take uint64) ([]Account, error)
 }
+
+var _ AccountService = (*accountService)(nil)
 
 type Account struct {
 	ID   string `json:"id" gorm:"primarykey"`
@@ -40,6 +43,10 @@ func (s *accountService) CreateAccount(ctx context.Context, name string) (*Accou
 
 func (s *accountService) GetAccount(ctx context.Context, id string) (*Account, error) {
 	return s.repository.GetAccountByID(ctx, id)
+}
+
+func (s *accountService) GetAccounts(ctx context.Context, ids []string) ([]Account, error) {
+	return s.repository.GetAccounts(ctx, ids)
 }
 
 func (s *accountService) ListAccounts(ctx context.Context, skip uint64, take uint64) ([]Account, error) {

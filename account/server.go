@@ -85,12 +85,25 @@ func (s *AccountServiceServer) GetAccount(ctx context.Context, req *pb.GetAccoun
 	}, nil
 }
 
+func (s *AccountServiceServer) GetAccounts(ctx context.Context, req *pb.GetAccountsRequest) (*pb.GetAccountsResponse, error) {
+	res, err := s.service.GetAccounts(ctx, req.Ids)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.GetAccountsResponse{Accounts: accounts(res)}, nil
+}
+
 func (s *AccountServiceServer) ListAccounts(ctx context.Context, req *pb.ListAccountsRequest) (*pb.ListAccountsResponse, error) {
 	res, err := s.service.ListAccounts(ctx, req.Skip, req.Take)
 	if err != nil {
 		return nil, err
 	}
 
+	return &pb.ListAccountsResponse{Accounts: accounts(res)}, nil
+}
+
+func accounts(res []Account) []*pb.Account {
 	accounts := []*pb.Account{}
 	for _, p := range res {
 		accounts = append(
@@ -102,5 +115,5 @@ func (s *AccountServiceServer) ListAccounts(ctx context.Context, req *pb.ListAcc
 		)
 	}
 
-	return &pb.ListAccountsResponse{Accounts: accounts}, nil
+	return accounts
 }
