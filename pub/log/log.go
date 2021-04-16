@@ -65,6 +65,7 @@ func Middleware(l *zap.Logger) func(next http.Handler) http.Handler {
 	}
 }
 
-func For(ctx context.Context) *zap.Logger {
-	return ctx.Value(logCtx).(*zap.Logger)
+func For(ctx context.Context) (*zap.Logger, bool) {
+	log, ok := ctx.Value(logCtx).(*zap.Logger)
+	return log, ok
 }
