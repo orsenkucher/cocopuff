@@ -26,8 +26,8 @@ type GraphQLServer struct {
 func NewServer(
 	sugar *zap.SugaredLogger,
 	config gql.Config,
-	recoverFn graphql.RecoverFunc,
-	errorPresenter graphql.ErrorPresenterFunc,
+	gqlError graphql.ErrorPresenterFunc,
+	gqlRecover graphql.RecoverFunc,
 	websocket transport.Websocket,
 	cors func(http.Handler) http.Handler,
 	middleware ...func(http.Handler) http.Handler,
@@ -42,8 +42,8 @@ func NewServer(
 	server.Use(extension.Introspection{})
 	server.Use(extension.AutomaticPersistedQuery{Cache: lru.New(1024)})
 	server.Use(apollotracing.Tracer{})
-	server.SetRecoverFunc(recoverFn)
-	server.SetErrorPresenter(errorPresenter)
+	server.SetErrorPresenter(gqlError)
+	server.SetRecoverFunc(gqlRecover)
 
 	router := chi.NewRouter()
 	router.Use(cors)

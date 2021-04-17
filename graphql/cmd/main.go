@@ -18,6 +18,7 @@ import (
 	"github.com/orsenkucher/cocopuff/graphql/env"
 	"github.com/orsenkucher/cocopuff/graphql/gql"
 	"github.com/orsenkucher/cocopuff/graphql/log"
+	"github.com/orsenkucher/cocopuff/graphql/presenter"
 	"github.com/orsenkucher/cocopuff/graphql/resolver"
 	"github.com/orsenkucher/cocopuff/pub/care"
 	"github.com/orsenkucher/cocopuff/pub/gs"
@@ -82,8 +83,8 @@ func run(ctx context.Context, sugar *zap.SugaredLogger, spec specification) erro
 		Resolvers:  resolver.New(sugar, client),
 		Directives: directive.New(sugar, client),
 	}
-	recoverFn := recoverFn(sugar)
-	errorPresenter := errorPresenter(sugar)
+	gqlError := presenter.Error(sugar)
+	gqlRecover := presenter.Recover(sugar)
 
 	tokenAuth := jwtauth.New("HS256", []byte(spec.JWTSignKey), nil)
 	initFn := authentication.WebsocketMiddleware(sugar, tokenAuth, client)
@@ -101,7 +102,7 @@ func run(ctx context.Context, sugar *zap.SugaredLogger, spec specification) erro
 		authentication.Middleware(sugar, tokenAuth, client),
 		dataloader.Middleware(sugar, client),
 	}
-	server := graphql.NewServer(sugar, config, recoverFn, errorPresenter, socket, cors,
+	server := graphql.NewServer(sugar, config, gqlError, gqlRecover, socket, cors,
 		middleware...,
 	)
 	return <-server.ListenGraphQL(ctx, spec.Port)
