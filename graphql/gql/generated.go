@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -41,6 +42,7 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
+	HasRole func(ctx context.Context, obj interface{}, next graphql.Resolver, role Role) (res interface{}, err error)
 }
 
 type ComplexityRoot struct {
@@ -350,6 +352,13 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 var sources = []*ast.Source{
 	{Name: "../api/graphql/schema.graphql", Input: `scalar Time
 
+directive @hasRole(role: Role!) on FIELD_DEFINITION
+
+enum Role {
+  ADMIN
+  USER
+}
+
 type Account {
   id: String!
   name: String!
@@ -405,7 +414,7 @@ input OrderInput {
 
 type Mutation {
   createAccount(account: AccountInput!): Account
-  createProduct(product: ProductInput!): Product
+  createProduct(product: ProductInput!): Product @hasRole(role: ADMIN)
   createOrder(order: OrderInput!): Order
 }
 
@@ -420,6 +429,21 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) dir_hasRole_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 Role
+	if tmp, ok := rawArgs["role"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("role"))
+		arg0, err = ec.unmarshalNRole2githubᚗcomᚋorsenkucherᚋcocopuffᚋgraphqlᚋgqlᚐRole(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["role"] = arg0
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_createAccount_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -744,8 +768,32 @@ func (ec *executionContext) _Mutation_createProduct(ctx context.Context, field g
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateProduct(rctx, args["product"].(ProductInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateProduct(rctx, args["product"].(ProductInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋorsenkucherᚋcocopuffᚋgraphqlᚋgqlᚐRole(ctx, "ADMIN")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*Product); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/orsenkucher/cocopuff/graphql/gql.Product`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3427,6 +3475,16 @@ func (ec *executionContext) marshalNProduct2ᚖgithubᚗcomᚋorsenkucherᚋcoco
 func (ec *executionContext) unmarshalNProductInput2githubᚗcomᚋorsenkucherᚋcocopuffᚋgraphqlᚋgqlᚐProductInput(ctx context.Context, v interface{}) (ProductInput, error) {
 	res, err := ec.unmarshalInputProductInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNRole2githubᚗcomᚋorsenkucherᚋcocopuffᚋgraphqlᚋgqlᚐRole(ctx context.Context, v interface{}) (Role, error) {
+	var res Role
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNRole2githubᚗcomᚋorsenkucherᚋcocopuffᚋgraphqlᚋgqlᚐRole(ctx context.Context, sel ast.SelectionSet, v Role) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {

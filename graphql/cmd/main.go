@@ -14,6 +14,7 @@ import (
 	"github.com/orsenkucher/cocopuff/graphql"
 	"github.com/orsenkucher/cocopuff/graphql/authentication"
 	"github.com/orsenkucher/cocopuff/graphql/dataloader"
+	"github.com/orsenkucher/cocopuff/graphql/directive"
 	"github.com/orsenkucher/cocopuff/graphql/env"
 	"github.com/orsenkucher/cocopuff/graphql/gql"
 	"github.com/orsenkucher/cocopuff/graphql/log"
@@ -78,7 +79,8 @@ func run(ctx context.Context, sugar *zap.SugaredLogger, spec specification) erro
 	defer client.Close()
 
 	config := gql.Config{
-		Resolvers: resolver.NewResolver(sugar, client),
+		Resolvers:  resolver.New(sugar, client),
+		Directives: directive.New(sugar, client),
 	}
 
 	tokenAuth := jwtauth.New("HS256", []byte(spec.JWTSignKey), nil)

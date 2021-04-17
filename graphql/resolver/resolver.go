@@ -14,6 +14,6 @@ type Resolver struct {
 	client *graphql.Client
 }
 
-func NewResolver(sugar *zap.SugaredLogger, client *graphql.Client) *Resolver {
+func New(sugar *zap.SugaredLogger, client *graphql.Client) *Resolver {
 	return &Resolver{sugar: sugar, client: client}
 }

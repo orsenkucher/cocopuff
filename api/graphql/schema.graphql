@@ -1,5 +1,12 @@
 scalar Time
 
+directive @hasRole(role: Role!) on FIELD_DEFINITION
+
+enum Role {
+  ADMIN
+  USER
+}
+
 type Account {
   id: String!
   name: String!
@@ -55,7 +62,7 @@ input OrderInput {
 
 type Mutation {
   createAccount(account: AccountInput!): Account
-  createProduct(product: ProductInput!): Product
+  createProduct(product: ProductInput!): Product @hasRole(role: ADMIN)
   createOrder(order: OrderInput!): Order
 }
 
