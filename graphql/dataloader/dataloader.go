@@ -12,6 +12,7 @@ import (
 	"github.com/orsenkucher/cocopuff/graphql"
 	"github.com/orsenkucher/cocopuff/graphql/pb"
 	"github.com/orsenkucher/cocopuff/pub/care"
+	"github.com/orsenkucher/cocopuff/pub/log"
 	"go.uber.org/zap"
 )
 
@@ -31,8 +32,13 @@ func Middleware(sugar *zap.SugaredLogger, client *graphql.Client) func(http.Hand
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
-			ctx = withSugar(ctx, sugar)
-			ctx = withDataloader(ctx, &Dataloader{
+			if log, ok := log.For(ctx); ok {
+				sugar = log.Sugar()
+			}
+
+			sugar := sugar.With(zap.String("package", "dataloader"))
+			ctx = context.WithValue(ctx, sugarCtx, sugar)
+			ctx = context.WithValue(ctx, dataloaderCtx, &Dataloader{
 				AccountById:      NewAccountLoader(NewAccountLoaderConfig(r.Context(), sugar, client)),
 				AccountPaginated: NewAccountPaginatedLoader(NewAccountPaginatedLoaderConfig(r.Context(), sugar, client)),
 			})
@@ -40,15 +46,6 @@ func Middleware(sugar *zap.SugaredLogger, client *graphql.Client) func(http.Hand
 			next.ServeHTTP(w, r)
 		})
 	}
-}
-
-func withSugar(ctx context.Context, sugar *zap.SugaredLogger) context.Context {
-	sugar = sugar.With(zap.String("package", "dataloader"))
-	return context.WithValue(ctx, sugarCtx, sugar)
-}
-
-func withDataloader(ctx context.Context, dataloader *Dataloader) context.Context {
-	return context.WithValue(ctx, dataloaderCtx, dataloader)
 }
 
 func For(ctx context.Context) *Dataloader {

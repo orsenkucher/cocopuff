@@ -3,12 +3,16 @@ package main
 import (
 	"context"
 	"net/http"
+	"time"
 
+	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/go-chi/jwtauth/v5"
 	"github.com/gorilla/websocket"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/orsenkucher/cocopuff/graphql"
+	"github.com/orsenkucher/cocopuff/graphql/authentication"
 	"github.com/orsenkucher/cocopuff/graphql/dataloader"
 	"github.com/orsenkucher/cocopuff/graphql/env"
 	"github.com/orsenkucher/cocopuff/graphql/gql"
@@ -25,6 +29,7 @@ const service = "graphql"
 type specification struct {
 	Port       int    `default:"9100"`
 	AccountURL string `envconfig:"ACCOUNT_SERVICE_URL"`
+	JWTSignKey string `envconfig:"JWT_SIGN_KEY" default:"secret"`
 
 	Release    bool
 	Version    string `default:"v0.0.0"`
@@ -65,8 +70,6 @@ func ctx(sugar *zap.SugaredLogger, spec specification) context.Context {
 
 func run(ctx context.Context, sugar *zap.SugaredLogger, spec specification) error {
 	cors := corsMiddleware(spec)
-	upgrader := websocketUpgrader()
-
 	client, err := graphql.NewClient(sugar, spec.AccountURL)
 	if err != nil {
 		return care.Of(err, "fail to dial grpc client", zap.String("function", "run"))
@@ -78,15 +81,23 @@ func run(ctx context.Context, sugar *zap.SugaredLogger, spec specification) erro
 		Resolvers: resolver.NewResolver(sugar, client),
 	}
 
-	dataloader := dataloader.Middleware(sugar, client)
+	tokenAuth := jwtauth.New("HS256", []byte(spec.JWTSignKey), nil)
+	initFn := authentication.WebsocketMiddleware(sugar, tokenAuth, client)
+	socket := transport.Websocket{
+		InitFunc:              initFn,
+		Upgrader:              websocketUpgrader(),
+		KeepAlivePingInterval: 10 * time.Second,
+	}
 	middleware := []func(http.Handler) http.Handler{
 		middleware.RequestID,
 		log.Middleware(sugar.Desugar()),
 		middleware.Recoverer,
 		middleware.Compress(5),
-		dataloader,
+		authentication.Verifier(tokenAuth),
+		authentication.Middleware(sugar, tokenAuth, client),
+		dataloader.Middleware(sugar, client),
 	}
-	server := graphql.NewServer(sugar, config, upgrader, cors, middleware...)
+	server := graphql.NewServer(sugar, config, socket, cors, middleware...)
 	return <-server.ListenGraphQL(ctx, spec.Port)
 }
 

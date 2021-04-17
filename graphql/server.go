@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/apollotracing"
@@ -13,7 +12,6 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/lru"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/go-chi/chi/v5"
-	"github.com/gorilla/websocket"
 	"github.com/orsenkucher/cocopuff/graphql/gql"
 	"github.com/orsenkucher/cocopuff/pub/ec"
 	"go.uber.org/zap"
@@ -27,15 +25,12 @@ type GraphQLServer struct {
 func NewServer(
 	sugar *zap.SugaredLogger,
 	config gql.Config,
-	upgrader websocket.Upgrader,
+	websocket transport.Websocket,
 	cors func(http.Handler) http.Handler,
 	middleware ...func(http.Handler) http.Handler,
 ) *GraphQLServer {
 	server := handler.New(gql.NewExecutableSchema(config))
-	server.AddTransport(transport.Websocket{
-		Upgrader:              upgrader,
-		KeepAlivePingInterval: 10 * time.Second,
-	})
+	server.AddTransport(websocket)
 	server.AddTransport(transport.Options{})
 	server.AddTransport(transport.GET{})
 	server.AddTransport(transport.POST{})

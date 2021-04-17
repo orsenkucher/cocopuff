@@ -41,7 +41,7 @@ func Middleware(l *zap.Logger) func(next http.Handler) http.Handler {
 				zap.String("scheme", scheme),
 				zap.String("method", r.Method),
 			)
-			l = l.With(fields...)
+			l := l.With(fields...)
 
 			ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
 
