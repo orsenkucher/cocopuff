@@ -82,6 +82,8 @@ func run(ctx context.Context, sugar *zap.SugaredLogger, spec specification) erro
 		Resolvers:  resolver.New(sugar, client),
 		Directives: directive.New(sugar, client),
 	}
+	recoverFn := recoverFn(sugar)
+	errorPresenter := errorPresenter(sugar)
 
 	tokenAuth := jwtauth.New("HS256", []byte(spec.JWTSignKey), nil)
 	initFn := authentication.WebsocketMiddleware(sugar, tokenAuth, client)
@@ -99,7 +101,9 @@ func run(ctx context.Context, sugar *zap.SugaredLogger, spec specification) erro
 		authentication.Middleware(sugar, tokenAuth, client),
 		dataloader.Middleware(sugar, client),
 	}
-	server := graphql.NewServer(sugar, config, socket, cors, middleware...)
+	server := graphql.NewServer(sugar, config, recoverFn, errorPresenter, socket, cors,
+		middleware...,
+	)
 	return <-server.ListenGraphQL(ctx, spec.Port)
 }
 

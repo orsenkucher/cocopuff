@@ -129,7 +129,7 @@ func For(ctx context.Context) (*graphql.Account, bool) {
 	a, ok := ctx.Value(accountCtx).(*graphql.Account)
 	if !ok {
 		if sugar, ok := ctx.Value(sugarCtx).(*zap.SugaredLogger); ok {
-			sugar.DPanicw("fail to retrieve account", zap.String("function", "For"))
+			sugar.Infow("fail to retrieve account", zap.String("function", "For"))
 		}
 	}
 

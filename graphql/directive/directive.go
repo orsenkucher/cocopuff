@@ -15,7 +15,7 @@ func New(sugar *zap.SugaredLogger, client *super.Client) gql.DirectiveRoot {
 	return gql.DirectiveRoot{
 		HasRole: func(ctx context.Context, obj interface{}, next graphql.Resolver, role gql.Role) (interface{}, error) {
 			w := care.With(zap.String("package", "directive"), zap.String("directive", "HasRole"))
-			sugar.Desugar().Info("", w.Fields...)
+			sugar.Desugar().Info("resolving hasRole directive", w.Fields...)
 
 			if a, ok := authentication.For(ctx); !ok || !a.HasRole(role) {
 				return nil, w.New("unauthorized role")
