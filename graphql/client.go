@@ -7,6 +7,7 @@ package graphql
 import (
 	"context"
 
+	"github.com/orsenkucher/cocopuff/graphql/gql"
 	"github.com/orsenkucher/cocopuff/graphql/pb"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -15,8 +16,21 @@ import (
 // TODO: should I remove Account
 // and use pb.Account instead?
 type Account struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	IsAdmin bool
+}
+
+func (a *Account) HasRole(role gql.Role) bool {
+	if role.IsValid() {
+		switch role {
+		case gql.RoleAdmin:
+			return a.IsAdmin
+		case gql.RoleUser:
+			return !a.IsAdmin
+		}
+	}
+	return false
 }
 
 type Client struct {

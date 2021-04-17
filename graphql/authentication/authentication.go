@@ -125,14 +125,13 @@ func getClaims(token jwt.Token, err error) (jwt.Token, map[string]interface{}, e
 	return token, claims, err
 }
 
-func For(ctx context.Context) *graphql.Account {
-	if a, ok := ctx.Value(accountCtx).(*graphql.Account); ok {
-		return a
+func For(ctx context.Context) (*graphql.Account, bool) {
+	a, ok := ctx.Value(accountCtx).(*graphql.Account)
+	if !ok {
+		if sugar, ok := ctx.Value(sugarCtx).(*zap.SugaredLogger); ok {
+			sugar.DPanicw("fail to retrieve account", zap.String("function", "For"))
+		}
 	}
 
-	if sugar, ok := ctx.Value(sugarCtx).(*zap.SugaredLogger); ok {
-		sugar.DPanicw("fail to retrieve account", zap.String("function", "For"))
-	}
-
-	return nil
+	return a, ok
 }

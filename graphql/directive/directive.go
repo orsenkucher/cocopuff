@@ -5,6 +5,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	super "github.com/orsenkucher/cocopuff/graphql"
+	"github.com/orsenkucher/cocopuff/graphql/authentication"
 	"github.com/orsenkucher/cocopuff/graphql/gql"
 	"github.com/orsenkucher/cocopuff/pub/care"
 	"go.uber.org/zap"
@@ -16,35 +17,11 @@ func New(sugar *zap.SugaredLogger, client *super.Client) gql.DirectiveRoot {
 			w := care.With(zap.String("package", "directive"), zap.String("directive", "HasRole"))
 			sugar.Desugar().Info("", w.Fields...)
 
-			if !auth.UserFor(ctx).HasRole(role) {
+			if a, ok := authentication.For(ctx); !ok || !a.HasRole(role) {
 				return nil, w.New("unauthorized role")
 			}
 
 			return next(ctx)
 		},
 	}
-}
-
-// TODO: Unmock
-var auth = struct {
-	UserFor func(ctx context.Context) *User
-}{UserFor: func(ctx context.Context) *User {
-	return &User{Name: "Orsen", IsAdmin: true}
-}}
-
-type User struct {
-	Name    string
-	IsAdmin bool
-}
-
-func (u *User) HasRole(role gql.Role) bool {
-	if role.IsValid() {
-		switch role {
-		case gql.RoleAdmin:
-			return u.IsAdmin
-		case gql.RoleUser:
-			return !u.IsAdmin
-		}
-	}
-	return false
 }
