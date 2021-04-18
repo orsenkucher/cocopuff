@@ -7,3 +7,5 @@
 - [Открытые вопросы](../flows.secret/questions.md)
 - [Домен работы](../flows.secret/domain.md)
 - [Команда](../flows.secret/team.md)
+- [Rewriting history](../flows/git.md)
+- [Silver searcher](../flows/ag.md)
