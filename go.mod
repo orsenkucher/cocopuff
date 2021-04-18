@@ -8,7 +8,7 @@ require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/go-chi/chi/v5 v5.0.2
 	github.com/go-chi/cors v1.2.0
-	github.com/go-chi/jwtauth/v5 v5.0.1 // indirect
+	github.com/go-chi/jwtauth/v5 v5.0.1
 	github.com/goccy/go-json v0.4.12 // indirect
 	github.com/gorilla/websocket v1.4.2
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
@@ -16,7 +16,7 @@ require (
 	github.com/jackc/pgx/v4 v4.11.0 // indirect
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lestrrat-go/backoff/v2 v2.0.8 // indirect
-	github.com/lestrrat-go/jwx v1.1.7 // indirect
+	github.com/lestrrat-go/jwx v1.1.7
 	github.com/matryer/moq v0.2.1 // indirect
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
 	github.com/pkg/errors v0.9.1
